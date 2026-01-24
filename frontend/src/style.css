@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar for dark mode */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dark-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-dark-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-dark-500;
+}
+
+/* Custom utilities */
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-900;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-dark-700 text-dark-100 hover:bg-dark-600 focus:ring-dark-500;
+  }
+
+  .btn-accent {
+    @apply btn bg-accent-600 text-white hover:bg-accent-700 focus:ring-accent-500;
+  }
+
+  .card {
+    @apply bg-dark-800 rounded-xl border border-dark-700 shadow-lg;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-dark-100 placeholder-dark-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  .textarea {
+    @apply input min-h-[120px] resize-y;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-dark-300 mb-2;
+  }
+}
+
+/* Agent avatar colors */
+.agent-architect { @apply bg-blue-600; }
+.agent-devops { @apply bg-green-600; }
+.agent-security { @apply bg-red-600; }
+.agent-ux { @apply bg-purple-600; }
+.agent-qa { @apply bg-yellow-600; }
+.agent-product_manager { @apply bg-pink-600; }
+.agent-data_engineer { @apply bg-cyan-600; }
+.agent-ml_engineer { @apply bg-orange-600; }
+.agent-frontend_dev { @apply bg-indigo-600; }
+.agent-backend_dev { @apply bg-teal-600; }
+.agent-mobile_dev { @apply bg-rose-600; }
+.agent-business_analyst { @apply bg-amber-600; }
+.agent-tech_lead { @apply bg-emerald-600; }
+.agent-moderator { @apply bg-gray-600; }
+.agent-clarifier { @apply bg-violet-600; }
+.agent-judge { @apply bg-slate-600; }

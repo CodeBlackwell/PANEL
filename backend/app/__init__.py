@@ -1,0 +1,1 @@
+"""ArchitX Backend Application."""
