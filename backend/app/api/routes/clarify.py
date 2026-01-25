@@ -65,8 +65,9 @@ async def submit_answers(session_id: str, request: SubmitAnswersRequest):
     if session.phase != SessionPhase.CLARIFYING:
         raise HTTPException(status_code=400, detail="Not in clarification phase")
 
-    # Process answers through the agent
-    await process_answers(session_id, request.answers)
+    # Process answers through the agent (convert Pydantic objects to dicts)
+    answers_as_dicts = [a.model_dump() for a in request.answers]
+    await process_answers(session_id, answers_as_dicts)
 
     session = conversation_store.get_session(session_id)
     return SessionStatus(

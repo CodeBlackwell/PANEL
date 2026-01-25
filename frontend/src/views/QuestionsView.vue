@@ -3,8 +3,24 @@ import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useSessionStore } from '../stores/session'
 import { useSSE } from '../composables/useSSE'
-import { api } from '../services/api'
+import { api, type ClarificationAnswer } from '../services/api'
 import AgentMessage from '../components/AgentMessage.vue'
+
+interface ClarificationOption {
+  id: string
+  text: string
+}
+
+interface ClarificationQuestion {
+  question: string
+  context?: string
+  options: ClarificationOption[]
+}
+
+interface AnswerSelection {
+  selectedOption: string | null  // Option ID or 'custom'
+  customAnswer: string
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -12,13 +28,24 @@ const store = useSessionStore()
 const { connect, disconnect, isConnected } = useSSE()
 
 const messagesContainer = ref<HTMLElement | null>(null)
-const currentAnswers = ref<string[]>([])
-const currentQuestions = ref<string[]>([])
+const currentAnswers = ref<AnswerSelection[]>([])
+const currentQuestions = ref<ClarificationQuestion[]>([])
 const isWaitingForAnswer = ref(false)
 const isSubmitting = ref(false)
 const clarificationComplete = ref(false)
 
 const sessionId = computed(() => route.params.sessionId as string)
+
+// Check if all questions have valid answers
+const allQuestionsAnswered = computed(() => {
+  return currentAnswers.value.every((answer, index) => {
+    if (!answer.selectedOption) return false
+    if (answer.selectedOption === 'custom') {
+      return answer.customAnswer.trim().length > 0
+    }
+    return true
+  })
+})
 
 onMounted(async () => {
   if (sessionId.value !== store.sessionId) {
@@ -32,19 +59,45 @@ function startClarification() {
 
   connect(url, {
     questions: (data) => {
-      currentQuestions.value = data.questions || []
-      currentAnswers.value = new Array(currentQuestions.value.length).fill('')
+      // Parse questions with options
+      currentQuestions.value = (data.questions || []).map((q: any) => ({
+        question: q.question || '',
+        context: q.context || undefined,
+        options: (q.options || []).map((opt: any) => ({
+          id: opt.id || '',
+          text: opt.text || '',
+        })),
+      }))
+
+      // Initialize answers array
+      currentAnswers.value = currentQuestions.value.map(() => ({
+        selectedOption: null,
+        customAnswer: '',
+      }))
+
       isWaitingForAnswer.value = true
       store.setClarificationRound(data.round_number)
 
-      currentQuestions.value.forEach((q: string) => {
+      // Add questions to message history
+      currentQuestions.value.forEach((q: ClarificationQuestion) => {
+        let content = q.question
+        if (q.context) {
+          content += `\n_${q.context}_`
+        }
+        if (q.options.length > 0) {
+          content += '\n' + q.options.map(opt => `${opt.id}) ${opt.text}`).join('\n')
+        }
         store.addClarificationMessage({
           type: 'question',
-          content: q,
+          content,
           roundNumber: data.round_number,
         })
       })
       scrollToBottom()
+
+      // Disconnect after receiving questions to prevent auto-reconnect
+      // We'll reconnect after user submits answers
+      disconnect()
     },
     complete: () => {
       clarificationComplete.value = true
@@ -59,13 +112,33 @@ function startClarification() {
 }
 
 async function submitAnswers() {
-  if (currentAnswers.value.some(a => !a.trim())) return
+  if (!allQuestionsAnswered.value) return
 
   isSubmitting.value = true
   isWaitingForAnswer.value = false
 
   try {
-    await store.submitAnswers(currentAnswers.value)
+    // Build structured answers
+    const structuredAnswers: ClarificationAnswer[] = currentQuestions.value.map((q, index) => {
+      const answer = currentAnswers.value[index]
+      const isCustom = answer.selectedOption === 'custom'
+
+      // Find the selected option text if not custom
+      let selectedOptionText: string | null = null
+      if (!isCustom && answer.selectedOption) {
+        const option = q.options.find(opt => opt.id === answer.selectedOption)
+        selectedOptionText = option?.text || null
+      }
+
+      return {
+        question: q.question,
+        selected_option: isCustom ? null : answer.selectedOption,
+        selected_option_text: selectedOptionText,
+        custom_answer: isCustom ? answer.customAnswer : null,
+      }
+    })
+
+    await store.submitAnswers(structuredAnswers)
     currentQuestions.value = []
     currentAnswers.value = []
     scrollToBottom()
@@ -130,27 +203,86 @@ function scrollToBottom() {
       </div>
     </div>
 
-    <!-- Answer Input -->
-    <div v-if="isWaitingForAnswer && currentQuestions.length > 0" class="card p-6 mb-6 space-y-4">
+    <!-- Answer Input with Multiple Choice -->
+    <div v-if="isWaitingForAnswer && currentQuestions.length > 0" class="space-y-6 mb-6">
       <div
-        v-for="(question, index) in currentQuestions"
-        :key="index"
-        class="space-y-2"
+        v-for="(question, qIndex) in currentQuestions"
+        :key="qIndex"
+        class="card p-6 space-y-4"
       >
-        <label class="label">Q{{ index + 1 }}: {{ question }}</label>
-        <textarea
-          v-model="currentAnswers[index]"
-          class="textarea"
-          placeholder="Type your answer here..."
-          rows="3"
-        />
+        <!-- Question header -->
+        <div>
+          <h3 class="text-lg font-semibold text-dark-100">
+            Q{{ qIndex + 1 }}: {{ question.question }}
+          </h3>
+          <p v-if="question.context" class="text-sm text-dark-400 mt-1 italic">
+            {{ question.context }}
+          </p>
+        </div>
+
+        <!-- Multiple choice options -->
+        <div class="space-y-3">
+          <label
+            v-for="option in question.options"
+            :key="option.id"
+            class="flex items-start gap-3 p-3 rounded-lg border border-dark-600 hover:border-primary-500 cursor-pointer transition-colors"
+            :class="{
+              'border-primary-500 bg-primary-500/10': currentAnswers[qIndex]?.selectedOption === option.id
+            }"
+          >
+            <input
+              type="radio"
+              :name="`question-${qIndex}`"
+              :value="option.id"
+              v-model="currentAnswers[qIndex].selectedOption"
+              class="mt-1 w-4 h-4 text-primary-500 bg-dark-700 border-dark-500 focus:ring-primary-500 focus:ring-offset-dark-800"
+            />
+            <span class="flex-1">
+              <span class="font-medium text-primary-400">{{ option.id }}.</span>
+              <span class="text-dark-200 ml-1">{{ option.text }}</span>
+            </span>
+          </label>
+
+          <!-- Type your own answer option -->
+          <label
+            class="flex items-start gap-3 p-3 rounded-lg border border-dark-600 hover:border-primary-500 cursor-pointer transition-colors"
+            :class="{
+              'border-primary-500 bg-primary-500/10': currentAnswers[qIndex]?.selectedOption === 'custom'
+            }"
+          >
+            <input
+              type="radio"
+              :name="`question-${qIndex}`"
+              value="custom"
+              v-model="currentAnswers[qIndex].selectedOption"
+              class="mt-1 w-4 h-4 text-primary-500 bg-dark-700 border-dark-500 focus:ring-primary-500 focus:ring-offset-dark-800"
+            />
+            <span class="flex-1">
+              <span class="font-medium text-dark-200">Type your own answer</span>
+            </span>
+          </label>
+
+          <!-- Custom answer textarea -->
+          <div
+            v-if="currentAnswers[qIndex]?.selectedOption === 'custom'"
+            class="pl-7"
+          >
+            <textarea
+              v-model="currentAnswers[qIndex].customAnswer"
+              class="textarea w-full"
+              placeholder="Type your answer here..."
+              rows="3"
+            />
+          </div>
+        </div>
       </div>
 
+      <!-- Submit button -->
       <button
         @click="submitAnswers"
         class="btn-primary w-full"
-        :disabled="currentAnswers.some(a => !a.trim()) || isSubmitting"
-        :class="{ 'opacity-50 cursor-not-allowed': currentAnswers.some(a => !a.trim()) || isSubmitting }"
+        :disabled="!allQuestionsAnswered || isSubmitting"
+        :class="{ 'opacity-50 cursor-not-allowed': !allQuestionsAnswered || isSubmitting }"
       >
         <span v-if="isSubmitting" class="flex items-center justify-center gap-2">
           <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">

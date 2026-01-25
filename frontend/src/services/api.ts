@@ -23,6 +23,24 @@ export interface AgentInfo {
   default_selected: boolean
 }
 
+export interface ClarificationOption {
+  id: string  // "A", "B", "C", "D"
+  text: string
+}
+
+export interface ClarificationQuestionData {
+  question: string
+  context?: string
+  options: ClarificationOption[]
+}
+
+export interface ClarificationAnswer {
+  question: string
+  selected_option: string | null  // Option ID or null
+  selected_option_text: string | null
+  custom_answer: string | null
+}
+
 export interface CreateSessionResponse {
   session_id: string
   phase: string
@@ -73,7 +91,7 @@ export const api = {
     return handleResponse(response)
   },
 
-  async submitAnswers(sessionId: string, answers: string[]): Promise<Session> {
+  async submitAnswers(sessionId: string, answers: ClarificationAnswer[]): Promise<Session> {
     const response = await fetch(`${API_BASE}/sessions/${sessionId}/answers`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

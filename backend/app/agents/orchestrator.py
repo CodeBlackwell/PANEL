@@ -71,17 +71,126 @@ async def run_clarification(session_id: str) -> AsyncGenerator[Dict[str, Any], N
 
     context = get_session_context(session_id)
 
-    # For now, skip clarification and go straight to debate
-    # (The full implementation would use AutoGen here)
-    logger.info(f"[CLARIFY] Skipping to debate (clarification simplified)")
-
+    # Update phase
     session.phase = SessionPhase.CLARIFYING
+    session.clarification_round += 1
     conversation_store.save_session(session)
 
-    yield {"type": "complete", "data": {"message": "Clarification complete"}}
+    try:
+        from autogen_agentchat.agents import AssistantAgent
+        from autogen_agentchat.teams import RoundRobinGroupChat
+        from autogen_agentchat.conditions import MaxMessageTermination
+        from autogen_ext.models.openai import OpenAIChatCompletionClient
+        from .definitions import CLARIFIER_AGENT
+
+        logger.info(f"[CLARIFY] Creating model client for round {session.clarification_round}...")
+
+        model_client = OpenAIChatCompletionClient(
+            model=settings.model_name,
+            api_key=settings.openai_api_key,
+        )
+
+        # Build clarification prompt
+        clarification_prompt = f"""PROJECT IDEA:
+{session.idea}
+
+PREVIOUS Q&A:
+{context.get_clarification_summary()}
+
+CURRENT ROUND: {session.clarification_round}
+
+Generate 3-5 clarifying questions with multiple choice options.
+Output ONLY valid JSON as specified in your instructions."""
+
+        # Create clarifier agent
+        clarifier = AssistantAgent(
+            name="Clarifier",
+            description=CLARIFIER_AGENT.description,
+            system_message=CLARIFIER_AGENT.system_prompt,
+            model_client=model_client,
+        )
+
+        team = RoundRobinGroupChat(
+            participants=[clarifier],
+            termination_condition=MaxMessageTermination(2),  # Task + Agent response
+        )
+
+        logger.info(f"[CLARIFY] Running clarifier agent...")
+        result = await team.run(task=clarification_prompt)
+
+        # Extract response content
+        response_content = ""
+        for msg in result.messages:
+            if hasattr(msg, 'content') and msg.content and msg.source != "user":
+                response_content = msg.content
+                break
+
+        logger.info(f"[CLARIFY] Raw response: {response_content[:500] if response_content else '(empty)'}...")
+
+        # Parse JSON response
+        fallback = {
+            "questions": [],
+            "is_complete": False
+        }
+        parsed_data, success, error = extract_json_from_llm_response(response_content, fallback)
+
+        if not success:
+            logger.warning(f"[CLARIFY] JSON parsing failed: {error}")
+
+        # Check if clarification is complete
+        if parsed_data.get("is_complete", False):
+            logger.info(f"[CLARIFY] Clarification marked as complete by agent")
+            conversation_store.append_clarification(
+                session_id,
+                f"## Round {session.clarification_round}\n\n_Clarification complete - sufficient information gathered._\n"
+            )
+            yield {"type": "complete", "data": {"message": "Clarification complete"}}
+            return
+
+        # Format questions for frontend
+        questions = parsed_data.get("questions", [])
+        if not questions:
+            logger.warning(f"[CLARIFY] No questions generated, marking complete")
+            yield {"type": "complete", "data": {"message": "Clarification complete"}}
+            return
+
+        formatted_questions = []
+        for q in questions:
+            formatted_q = {
+                "question": q.get("question", ""),
+                "context": q.get("context"),
+                "options": q.get("options", []),
+            }
+            formatted_questions.append(formatted_q)
+
+        logger.info(f"[CLARIFY] Generated {len(formatted_questions)} questions")
+
+        # Save to transcript
+        transcript_lines = [f"## Round {session.clarification_round}\n"]
+        for i, q in enumerate(formatted_questions, 1):
+            transcript_lines.append(f"**Q{i}:** {q['question']}")
+            if q.get('context'):
+                transcript_lines.append(f"_Context: {q['context']}_")
+            for opt in q.get('options', []):
+                transcript_lines.append(f"  - {opt.get('id', '?')}) {opt.get('text', '')}")
+            transcript_lines.append("")
+        conversation_store.append_clarification(session_id, "\n".join(transcript_lines))
+
+        # Yield questions to frontend
+        yield {
+            "type": "questions",
+            "data": {
+                "questions": formatted_questions,
+                "round_number": session.clarification_round,
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"[CLARIFY] Error: {e}", exc_info=True)
+        yield {"type": "error", "data": {"error": str(e)}}
 
 
-async def process_answers(session_id: str, answers: List[str]) -> None:
+async def process_answers(session_id: str, answers: List[Dict[str, Any]]) -> None:
     """Process user answers to clarifying questions."""
     session = conversation_store.get_session(session_id)
     if not session:
@@ -89,15 +198,28 @@ async def process_answers(session_id: str, answers: List[str]) -> None:
 
     context = get_session_context(session_id)
 
+    transcript_lines = []
     for i, answer in enumerate(answers):
+        # Extract the answer text - prefer custom_answer, then selected_option_text
+        if answer.get("custom_answer"):
+            answer_text = answer["custom_answer"]
+        elif answer.get("selected_option_text"):
+            answer_text = f"[{answer.get('selected_option', '?')}] {answer['selected_option_text']}"
+        else:
+            answer_text = answer.get("selected_option", "No answer")
+
+        question_text = answer.get("question", f"Question {i + 1}")
+
         context.clarification_qa.append({
-            "question": f"Question {len(context.clarification_qa) + 1}",
-            "answer": answer,
+            "question": question_text,
+            "answer": answer_text,
         })
+
+        transcript_lines.append(f"**A{i+1}:** {answer_text}")
 
     conversation_store.append_clarification(
         session_id,
-        "\n".join([f"**A{i+1}:** {a}" for i, a in enumerate(answers)])
+        "\n".join(transcript_lines) + "\n"
     )
 
 

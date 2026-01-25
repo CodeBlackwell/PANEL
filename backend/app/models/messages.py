@@ -29,11 +29,18 @@ class AgentMessage(BaseModel):
     metadata: dict = Field(default_factory=dict)
 
 
+class ClarificationOption(BaseModel):
+    """A single option for a multiple choice question."""
+    id: str  # "A", "B", "C", "D"
+    text: str
+
+
 class ClarificationQuestion(BaseModel):
     """A clarifying question from the ClarifierAgent."""
     question: str
     context: Optional[str] = None
     round_number: int
+    options: list[ClarificationOption] = Field(default_factory=list)
 
 
 class ClarificationQuestions(BaseModel):

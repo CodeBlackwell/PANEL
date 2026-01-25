@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { api, type Session, type AgentInfo, type SessionConfig } from '../services/api'
+import { api, type Session, type AgentInfo, type SessionConfig, type ClarificationAnswer } from '../services/api'
 
 export type SessionPhase =
   | 'created'
@@ -117,16 +117,19 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
-  async function submitAnswers(answers: string[]): Promise<void> {
+  async function submitAnswers(answers: ClarificationAnswer[]): Promise<void> {
     if (!sessionId.value) throw new Error('No active session')
     isLoading.value = true
     error.value = null
     try {
       await api.submitAnswers(sessionId.value, answers)
-      answers.forEach((answer, i) => {
+      answers.forEach((answer) => {
+        // Display the answer in a readable format
+        const displayText = answer.custom_answer
+          || (answer.selected_option_text ? `[${answer.selected_option}] ${answer.selected_option_text}` : answer.selected_option || '')
         clarificationMessages.value.push({
           type: 'answer',
-          content: answer,
+          content: displayText,
           roundNumber: clarificationRound.value,
         })
       })

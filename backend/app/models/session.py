@@ -79,9 +79,17 @@ class SubmitIdeaRequest(BaseModel):
     idea: str = Field(..., min_length=10, max_length=10000)
 
 
+class ClarificationAnswer(BaseModel):
+    """Answer to a clarification question."""
+    question: str
+    selected_option: Optional[str] = None  # Option ID ("A", "B", etc.) or None
+    selected_option_text: Optional[str] = None
+    custom_answer: Optional[str] = None
+
+
 class SubmitAnswersRequest(BaseModel):
     """Request to submit answers to clarifying questions."""
-    answers: list[str]
+    answers: list[ClarificationAnswer]
 
 
 class SessionStatus(BaseModel):
