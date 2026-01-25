@@ -1,0 +1,19 @@
+{
+  "id": "ddb7e2f4-cdec-4d0d-b994-c020d21dcfa2",
+  "phase": "completed",
+  "idea": "Build a real-time dashboard for monitoring and controlling the LLM crypto trading system.\n\nDASHBOARD VIEWS:\n\n1. Portfolio Overview (Home)\n   - Total portfolio value with 24h change\n   - Equity curve chart (line graph, zoomable timeframes)\n   - Current drawdown indicator with warning thresholds\n   - Asset allocation pie chart\n   - Quick stats: Sharpe ratio, win rate, total trades\n\n2. Live Trading Feed\n   - Real-time stream of agent decisions and reasoning\n   - Show full chain-of-thought from Trading Agent\n   - Color-coded: green (buy), red (sell), gray (hold)\n   - Expandable cards showing Market/News Analyst inputs\n   - Timestamp and execution status for each decision\n\n3. Position Management\n   - Active positions table: symbol, quantity, entry price, current P&L\n   - Unrealized P&L with percentage\n   - Stop-loss and take-profit levels\n   - One-click close position button\n   - Position history with filters\n\n4. Order Book\n   - Pending orders with status\n   - Order history (last 100 orders)\n   - Filter by status: open, filled, cancelled\n   - Cancel order functionality\n\n5. Risk Metrics Panel\n   - Current portfolio exposure percentage\n   - Max drawdown (rolling 30-day)\n   - Sharpe ratio (annualized)\n   - Win rate and profit factor\n   - Risk limit utilization bars\n   - Circuit breaker status (active/triggered)\n\n6. News & Sentiment Feed\n   - Live news headlines being processed\n   - Sentiment score gauge (-1 to +1)\n   - Trending topics word cloud\n   - Social volume indicators\n   - Click to see full article/post\n\n7. Memory Inspector\n   - View what context LLM retrieved for last decision\n   - Browse episodic memory entries\n   - Search semantic memory\n   - Memory utilization stats\n\n8. Manual Controls\n   - Emergency STOP button (halt all trading)\n   - Pause/Resume trading toggle\n   - Close all positions button (with confirmation)\n   - Adjust risk limits on the fly\n   - Force refresh market data\n\n9. Alerts & Notifications\n   - Configure alert rules (drawdown > X%, large trade, errors)\n   - Notification channels: in-app, Telegram, Discord, email\n   - Alert history log\n   - Mute/snooze controls\n\n10. Backtesting Interface\n    - Date range selector for historical replay\n    - Strategy parameter inputs\n    - Run backtest button\n    - Results: equity curve, trade list, metrics\n    - Compare multiple backtest runs\n\nTECHNICAL REQUIREMENTS:\n\n- Real-time updates via WebSocket or SSE (Server-Sent Events)\n- Responsive design: desktop and tablet support\n- Dark mode theme (trader preference)\n- Charts: TradingView lightweight-charts or Chart.js\n- Sub-second latency for price updates\n- Authentication: API key or OAuth\n\nTECH STACK:\n- Frontend: Vue 3 with Composition API (matches existing ArchitX frontend)\n- State: Pinia store for global state\n- Styling: TailwindCSS with dark theme\n- Charts: lightweight-charts for candlesticks, Chart.js for metrics\n- Real-time: SSE composable (reuse from ArchitX)\n- Backend: FastAPI WebSocket/SSE endpoints",
+  "config": {
+    "selected_agents": [
+      "devops",
+      "ux",
+      "frontend_dev",
+      "backend_dev"
+    ],
+    "debate_rounds": 4
+  },
+  "clarification_round": 0,
+  "debate_round": 4,
+  "created_at": "2026-01-24T07:20:04.493480",
+  "updated_at": "2026-01-24T07:25:01.497883",
+  "error_message": null
+}

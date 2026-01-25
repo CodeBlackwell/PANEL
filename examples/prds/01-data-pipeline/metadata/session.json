@@ -1,0 +1,20 @@
+{
+  "id": "837a3ecf-7248-4ce5-add6-9544b98a8c52",
+  "phase": "completed",
+  "idea": "Build a real-time cryptocurrency data pipeline that feeds LLM trading agents with market intelligence.\n\nCORE COMPONENTS:\n\n1. Price Data Ingestion\n   - Fetch OHLCV (Open/High/Low/Close/Volume) data via CCXT library\n   - Support multiple exchanges: Binance, Coinbase Pro, Kraken\n   - WebSocket streams for real-time tick data\n   - Historical data backfill capability (1-minute to daily candles)\n\n2. Order Book & Trade Flow\n   - Level 2 order book depth aggregation (top 20 bids/asks)\n   - Trade flow analysis: buy/sell pressure, large order detection\n   - Volume-weighted average price (VWAP) calculation\n   - Order book imbalance metrics\n\n3. On-Chain Metrics Integration\n   - Whale wallet tracking (transactions > $1M)\n   - Exchange inflow/outflow monitoring\n   - Active address counts\n   - Network hash rate and difficulty (for BTC)\n   - APIs: Glassnode, CryptoQuant, or blockchain RPC nodes\n\n4. News & Social Sentiment Pipeline\n   - News aggregation: CryptoCompare, CoinDesk RSS, Bloomberg crypto\n   - Social monitoring: Twitter/X API, Reddit (r/cryptocurrency, r/bitcoin)\n   - NLP preprocessing with FinBERT for financial sentiment scoring\n   - Keyword extraction and topic classification\n   - Spam/bot filtering for social data\n\n5. Technical Indicator Calculator\n   - Implement 20+ indicators using pandas-ta or TA-Lib:\n     * Trend: SMA, EMA, MACD, ADX, Parabolic SAR\n     * Momentum: RSI, Stochastic, CCI, Williams %R, ROC\n     * Volatility: Bollinger Bands, ATR, Keltner Channels\n     * Volume: OBV, VWAP, Chaikin Money Flow, Volume Profile\n   - Multi-timeframe analysis (1m, 5m, 15m, 1h, 4h, 1d)\n\n6. Feature Store\n   - Unified storage for all computed features\n   - Time-series database (TimescaleDB or InfluxDB)\n   - Feature versioning and lineage tracking\n   - Fast retrieval for ML model training\n\nOUTPUT REQUIREMENTS:\n- Structured JSON prompts ready for LLM consumption\n- Target latency: <1 second for price data, <5 minutes for news\n- Support for BTC, ETH, SOL markets initially\n- Extensible architecture for adding new data sources\n\nTECH STACK PREFERENCES:\n- Python with asyncio for concurrent data fetching\n- CCXT for exchange connectivity\n- Redis for caching and pub/sub\n- PostgreSQL/TimescaleDB for persistence",
+  "config": {
+    "selected_agents": [
+      "architect",
+      "devops",
+      "data_engineer",
+      "ml_engineer",
+      "backend_dev"
+    ],
+    "debate_rounds": 5
+  },
+  "clarification_round": 0,
+  "debate_round": 5,
+  "created_at": "2026-01-24T06:54:10.127550",
+  "updated_at": "2026-01-24T06:58:29.885471",
+  "error_message": null
+}

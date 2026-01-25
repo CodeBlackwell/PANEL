@@ -1,0 +1,55 @@
+Build a real-time cryptocurrency data pipeline that feeds LLM trading agents with market intelligence.
+
+CORE COMPONENTS:
+
+1. Price Data Ingestion
+   - Fetch OHLCV (Open/High/Low/Close/Volume) data via CCXT library
+   - Support multiple exchanges: Binance, Coinbase Pro, Kraken
+   - WebSocket streams for real-time tick data
+   - Historical data backfill capability (1-minute to daily candles)
+
+2. Order Book & Trade Flow
+   - Level 2 order book depth aggregation (top 20 bids/asks)
+   - Trade flow analysis: buy/sell pressure, large order detection
+   - Volume-weighted average price (VWAP) calculation
+   - Order book imbalance metrics
+
+3. On-Chain Metrics Integration
+   - Whale wallet tracking (transactions > $1M)
+   - Exchange inflow/outflow monitoring
+   - Active address counts
+   - Network hash rate and difficulty (for BTC)
+   - APIs: Glassnode, CryptoQuant, or blockchain RPC nodes
+
+4. News & Social Sentiment Pipeline
+   - News aggregation: CryptoCompare, CoinDesk RSS, Bloomberg crypto
+   - Social monitoring: Twitter/X API, Reddit (r/cryptocurrency, r/bitcoin)
+   - NLP preprocessing with FinBERT for financial sentiment scoring
+   - Keyword extraction and topic classification
+   - Spam/bot filtering for social data
+
+5. Technical Indicator Calculator
+   - Implement 20+ indicators using pandas-ta or TA-Lib:
+     * Trend: SMA, EMA, MACD, ADX, Parabolic SAR
+     * Momentum: RSI, Stochastic, CCI, Williams %R, ROC
+     * Volatility: Bollinger Bands, ATR, Keltner Channels
+     * Volume: OBV, VWAP, Chaikin Money Flow, Volume Profile
+   - Multi-timeframe analysis (1m, 5m, 15m, 1h, 4h, 1d)
+
+6. Feature Store
+   - Unified storage for all computed features
+   - Time-series database (TimescaleDB or InfluxDB)
+   - Feature versioning and lineage tracking
+   - Fast retrieval for ML model training
+
+OUTPUT REQUIREMENTS:
+- Structured JSON prompts ready for LLM consumption
+- Target latency: <1 second for price data, <5 minutes for news
+- Support for BTC, ETH, SOL markets initially
+- Extensible architecture for adding new data sources
+
+TECH STACK PREFERENCES:
+- Python with asyncio for concurrent data fetching
+- CCXT for exchange connectivity
+- Redis for caching and pub/sub
+- PostgreSQL/TimescaleDB for persistence

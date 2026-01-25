@@ -1,0 +1,19 @@
+{
+  "id": "dad5d733-1041-4d87-a8e3-fdad6a9d2cf2",
+  "phase": "completed",
+  "idea": "Build a training pipeline to fine-tune LLMs using Reinforcement Learning from Market Feedback (RLMF), inspired by the FinRLlama research paper.\n\nPIPELINE COMPONENTS:\n\n1. Historical Trade Labeling System\n   - Input: Historical LLM trading decisions with outcomes\n   - Labeling criteria:\n     * Profit/loss amount and percentage\n     * Risk-adjusted return (contribution to Sharpe ratio)\n     * Maximum adverse excursion (worst drawdown during trade)\n     * Trade duration vs expected holding period\n   - Output: Labeled dataset with quality scores (-1 to +1)\n   - Format: (prompt, response, reward_score) triplets\n   - Storage: Parquet files for efficient training data loading\n\n2. Reward Model\n   - Architecture: Fine-tuned LLM or separate regression model\n   - Inputs: LLM trading decision (action, reasoning, confidence)\n   - Predicts: Expected risk-adjusted return score\n   - Training data: Labeled historical trades\n   - Loss function: MSE between predicted and actual outcomes\n   - Regularization: Penalize overconfident wrong predictions\n\n3. PPO/DPO Training Loop\n   - Base model: Llama-3-8B or Mistral-7B (open-source)\n   - Fine-tuning approach: LoRA for parameter efficiency\n   - PPO (Proximal Policy Optimization):\n     * Actor: LLM generates trading decisions\n     * Critic: Reward model evaluates decisions\n     * Update policy to maximize expected reward\n   - DPO (Direct Preference Optimization) alternative:\n     * Pairs of (better, worse) trading decisions\n     * Train LLM to prefer higher-reward decisions\n     * Simpler than PPO, no separate reward model needed\n   - Hyperparameters: learning rate, KL penalty, batch size\n\n4. Evaluation Framework\n   - Held-out test periods (e.g., last 3 months of data)\n   - Metrics:\n     * Sharpe ratio improvement vs baseline\n     * Win rate change\n     * Average profit per trade\n     * Maximum drawdown comparison\n     * Calibration: does confidence match accuracy?\n   - Statistical significance testing (t-test, bootstrap)\n   - Ablation studies: which training signals help most\n\n5. A/B Testing Infrastructure\n   - Traffic splitting: X% to new model, (100-X)% to baseline\n   - Gradual rollout: 5% \u2192 20% \u2192 50% \u2192 100%\n   - Real-time metric comparison dashboard\n   - Automatic rollback if new model underperforms\n   - Shadow mode: new model predicts but doesn't execute\n\nTRAINING REQUIREMENTS:\n\n- Support consumer GPUs: RTX 3090/4090 (24GB VRAM)\n- Quantization: 4-bit or 8-bit for memory efficiency\n- Gradient checkpointing for long context\n- Mixed precision training (FP16/BF16)\n- Distributed training support for multiple GPUs\n\nDATA REQUIREMENTS:\n\n- Minimum 1000 labeled trades for initial training\n- Continuous learning: add new trades weekly\n- Data augmentation: synthetic variations of real trades\n- Handle class imbalance (more HOLD than BUY/SELL)\n\nEXPECTED OUTCOMES:\n\n- LLM learns to avoid high-risk trades\n- More consistent confidence calibration\n- Tighter, more profitable trading decisions\n- Reduced drawdowns during volatile periods\n\nTECH STACK:\n- Hugging Face Transformers for model loading\n- PEFT library for LoRA fine-tuning\n- TRL library for RLHF/DPO training\n- Weights & Biases for experiment tracking\n- PyTorch with CUDA for training\n- Optionally: DeepSpeed for memory optimization",
+  "config": {
+    "selected_agents": [
+      "architect",
+      "devops",
+      "data_engineer",
+      "ml_engineer"
+    ],
+    "debate_rounds": 4
+  },
+  "clarification_round": 0,
+  "debate_round": 4,
+  "created_at": "2026-01-24T07:26:39.843727",
+  "updated_at": "2026-01-24T07:31:33.314656",
+  "error_message": null
+}

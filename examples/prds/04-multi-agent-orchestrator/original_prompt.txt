@@ -1,0 +1,84 @@
+Build a multi-agent LLM trading orchestrator for cryptocurrency markets using a collaborative agent architecture.
+
+AGENT DEFINITIONS:
+
+1. Market Analyst Agent
+   - Role: Quantitative analysis of market conditions
+   - Inputs: Technical indicators, order book data, on-chain metrics
+   - Analysis tasks:
+     * Identify current market regime (trending/ranging/volatile)
+     * Detect support/resistance levels
+     * Analyze volume patterns and order flow
+     * Calculate probability of breakout/breakdown
+   - Output: Structured JSON market assessment with confidence scores
+   - LLM: GPT-4 or Claude for complex reasoning
+
+2. News Analyst Agent
+   - Role: Process financial news and social sentiment
+   - Inputs: News feed, Twitter sentiment, Reddit discussions
+   - Analysis tasks:
+     * Classify news impact: high/medium/low/noise
+     * Extract actionable events (regulatory, partnerships, hacks)
+     * Aggregate social sentiment scores
+     * Detect narrative shifts and trending topics
+   - Output: Sentiment summary with event timeline
+   - LLM: GPT-4 with financial fine-tuning or FinBERT
+
+3. Trading Agent (Decision Maker)
+   - Role: Synthesize all inputs and output trading decisions
+   - Inputs: Market Analyst report, News Analyst report, Memory context (RAG)
+   - Decision process:
+     * Weigh technical vs fundamental signals
+     * Consider current positions and risk limits
+     * Apply chain-of-thought reasoning (show your work)
+     * Output: BUY/SELL/HOLD with quantity, confidence, reasoning
+   - Output format:
+     {
+       "action": "BUY",
+       "symbol": "BTC/USDT",
+       "quantity": 0.1,
+       "confidence": 0.75,
+       "reasoning": "Step-by-step explanation...",
+       "stop_loss": 42000,
+       "take_profit": 48000
+     }
+   - LLM: GPT-4 for highest reasoning quality
+
+4. Reflection Agent
+   - Role: Post-hoc evaluation of trade outcomes
+   - Inputs: Completed trades with entry/exit prices, P&L
+   - Evaluation tasks:
+     * Was the original thesis correct?
+     * What signals were missed?
+     * Should the decision have been different?
+     * Generate lessons learned for memory storage
+   - Output: Trade review with recommendations for improvement
+   - Runs: After each trade closes (win or loss)
+   - Updates: Episodic memory with outcome data
+
+ORCHESTRATION FLOW:
+
+1. Data Pipeline triggers analysis cycle (every 5 minutes or on significant events)
+2. Market Analyst and News Analyst run in parallel
+3. Trading Agent receives both reports + memory context
+4. Trading Agent outputs decision with full reasoning
+5. Execution Engine validates and executes (if approved)
+6. Reflection Agent evaluates after trade closes
+7. Memory System updated with new learnings
+
+AGENT COMMUNICATION:
+
+- Structured JSON messages between agents
+- Shared context object with current market state
+- Asynchronous execution where possible
+- Timeout handling if agent takes too long
+- Fallback to HOLD if agents disagree strongly
+
+CONFIGURATION:
+
+- Adjustable analysis frequency (1min to 1hour)
+- Confidence thresholds for trade execution
+- Risk persona profiles: conservative/moderate/aggressive
+- Manual override: human can inject context or veto trades
+
+TARGET MARKETS: BTC/USDT, ETH/USDT, SOL/USDT on Binance initially

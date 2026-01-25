@@ -1,0 +1,19 @@
+{
+  "id": "1825e1ad-64f7-48ce-abbd-1174a8a8b448",
+  "phase": "completed",
+  "idea": "Design a layered memory system for LLM-based trading agents, inspired by the FinMem architecture from academic research.\n\nMEMORY ARCHITECTURE:\n\n1. Working Memory (Short-term, <1 hour)\n   - Current market state: latest prices, spreads, volumes\n   - Recent price action: last 100 candles across timeframes\n   - Active positions: current holdings, entry prices, unrealized P&L\n   - Pending orders: open orders awaiting execution\n   - Live news headlines: last 10 relevant headlines\n   - Implementation: Redis with TTL expiration\n   - Refresh rate: every tick for prices, every minute for positions\n\n2. Episodic Memory (Medium-term, days to weeks)\n   - Recent trade history with full context and outcomes\n   - Similar market conditions from the past (pattern matching)\n   - What the LLM decided in similar situations and whether it was profitable\n   - Key events: earnings, regulation news, hacks, and their price impacts\n   - Implementation: ChromaDB vector database for semantic search\n   - Storage: trade context embeddings using sentence-transformers\n   - Retrieval: \"Find past trades in similar high-volatility conditions\"\n\n3. Semantic Memory (Long-term, permanent knowledge)\n   - Market regime classifications: bull/bear/sideways/high-vol\n   - Critical historical events: Mt. Gox, Luna collapse, FTX\n   - Learned trading rules: \"Avoid buying during low-volume weekends\"\n   - Asset-specific knowledge: BTC halving cycles, ETH upgrade impacts\n   - Implementation: ChromaDB with importance-weighted persistence\n   - Never deleted, only updated with new learnings\n\nRETRIEVAL-AUGMENTED GENERATION (RAG):\n\n- Query system that provides relevant historical context to LLM\n- Example queries:\n  * \"What happened last time RSI was this oversold?\"\n  * \"How did similar news events affect price?\"\n  * \"What was our win rate in high-volatility conditions?\"\n- Return structured context: \"In 5 similar past situations, 4 resulted in profitable trades. Average return was +2.3%.\"\n- Configurable retrieval: top-k similar memories, recency weighting\n\nMEMORY PRIORITIZATION:\n\n- Recency weighting: recent memories rank higher\n- Importance scoring: high-impact trades and events persist longer\n- Outcome weighting: prioritize memories of profitable decisions\n- Decay function: episodic memories fade unless reinforced\n- Consolidation: move repeated patterns to semantic memory\n\nINTEGRATION POINTS:\n\n- Input: Market data pipeline feeds working memory\n- Input: Trade execution engine logs to episodic memory\n- Output: RAG context provided to Trading Agent LLM\n- Output: Reflection Agent updates memory based on outcomes\n\nTECH STACK:\n- Redis for working memory (sub-millisecond access)\n- ChromaDB for episodic and semantic memory (vector similarity)\n- sentence-transformers for embedding generation\n- Python async interface for non-blocking retrieval",
+  "config": {
+    "selected_agents": [
+      "architect",
+      "data_engineer",
+      "ml_engineer",
+      "backend_dev"
+    ],
+    "debate_rounds": 4
+  },
+  "clarification_round": 0,
+  "debate_round": 4,
+  "created_at": "2026-01-24T07:06:32.050796",
+  "updated_at": "2026-01-24T07:11:51.970627",
+  "error_message": null
+}

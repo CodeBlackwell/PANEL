@@ -1,0 +1,20 @@
+{
+  "id": "9781e38f-16dd-4cb1-8683-b6b8f0f3b913",
+  "phase": "completed",
+  "idea": "Build a trade execution engine that safely interfaces between LLM trading decisions and cryptocurrency exchange APIs.\n\nCORE COMPONENTS:\n\n1. Order Management System\n   - Support order types: market, limit, stop-loss, take-profit, trailing stop\n   - Order lifecycle management: pending \u2192 submitted \u2192 partial \u2192 filled/cancelled\n   - CCXT library integration for unified exchange API\n   - Order queuing with priority levels\n   - Idempotency keys to prevent duplicate orders\n\n2. Position Tracking & P&L\n   - Real-time position monitoring across all exchanges\n   - Mark-to-market P&L calculation\n   - Realized vs unrealized gains tracking\n   - Average entry price and cost basis\n   - Position history with full audit trail\n\n3. Risk Management Layer (CRITICAL)\n   - Max position size limits per asset (e.g., max 10% of portfolio in single asset)\n   - Portfolio-level exposure caps (e.g., max 50% total crypto exposure)\n   - Drawdown circuit breakers: pause trading if daily loss > 5%\n   - Cooldown periods after consecutive losses\n   - Correlation limits: prevent overexposure to correlated assets\n   - Leverage restrictions: max 2x leverage, no margin calls\n\n4. LLM Output Validation\n   - Use Guardrails AI to enforce valid JSON trade signals\n   - Schema validation: action (BUY/SELL/HOLD), symbol, quantity, confidence\n   - Reject malformed or incomplete signals\n   - Sanity checks: reject impossible quantities, invalid symbols\n\n5. Safety Override Logic\n   - Block dangerous suggestions: 100% allocation, unknown assets\n   - Rate limiting: max N trades per hour\n   - Manual approval required for trades above threshold\n   - Kill switch: emergency halt all trading\n   - Whitelist of allowed trading pairs\n\n6. Paper Trading Mode\n   - Simulated execution with real market data\n   - Virtual portfolio tracking\n   - Slippage simulation based on order size\n   - Performance comparison vs live trading\n   - Seamless switch between paper and live modes\n\n7. Multi-Exchange Support\n   - Unified interface across Binance, Coinbase, Kraken\n   - Automatic failover if primary exchange is down\n   - Best execution: route to exchange with best price\n   - Balance synchronization across exchanges\n\nEXECUTION REQUIREMENTS:\n- Execute validated LLM decisions within 100ms\n- Hard risk constraints cannot be overridden by LLM\n- Full audit log of all trade decisions and executions\n- Graceful degradation: continue safely if components fail\n\nTECH STACK PREFERENCES:\n- Python with FastAPI for REST endpoints\n- CCXT for exchange connectivity\n- PostgreSQL for order/position persistence\n- Redis for real-time state and rate limiting",
+  "config": {
+    "selected_agents": [
+      "architect",
+      "devops",
+      "security",
+      "qa",
+      "backend_dev"
+    ],
+    "debate_rounds": 5
+  },
+  "clarification_round": 0,
+  "debate_round": 5,
+  "created_at": "2026-01-24T06:59:41.320710",
+  "updated_at": "2026-01-24T07:05:32.242355",
+  "error_message": null
+}
