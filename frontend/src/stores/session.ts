@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { api, type Session, type AgentInfo, type SessionConfig, type ClarificationAnswer } from '../services/api'
+import { api, type AgentInfo, type SessionConfig, type ClarificationAnswer, type RepoContext } from '../services/api'
 
 export type SessionPhase =
   | 'created'
@@ -51,6 +51,8 @@ export const useSessionStore = defineStore('session', () => {
   const debateRound = ref(0)
   const error = ref<string | null>(null)
   const isLoading = ref(false)
+  const repoContext = ref<RepoContext | null>(null)
+  const userId = ref<string | null>(null)
 
   // Computed
   const isSessionActive = computed(() => sessionId.value !== null)
@@ -58,6 +60,7 @@ export const useSessionStore = defineStore('session', () => {
   const canStartDebate = computed(() => ['clarifying', 'debating'].includes(phase.value))
   const canStartJudge = computed(() => ['debating', 'drafting', 'judging'].includes(phase.value))
   const canDownload = computed(() => phase.value === 'completed')
+  const hasRepoContext = computed(() => repoContext.value !== null)
 
   // Actions
   async function createSession(): Promise<string> {
@@ -187,6 +190,8 @@ export const useSessionStore = defineStore('session', () => {
     debateRound.value = 0
     error.value = null
     isLoading.value = false
+    repoContext.value = null
+    userId.value = null
   }
 
   async function loadSession(id: string): Promise<void> {
@@ -199,6 +204,8 @@ export const useSessionStore = defineStore('session', () => {
       clarificationRound.value = session.clarification_round
       debateRound.value = session.debate_round
       config.value = session.config
+      repoContext.value = session.repo_context
+      userId.value = session.user_id
       if (session.error_message) {
         error.value = session.error_message
       }
@@ -208,6 +215,10 @@ export const useSessionStore = defineStore('session', () => {
     } finally {
       isLoading.value = false
     }
+  }
+
+  function setRepoContext(context: RepoContext) {
+    repoContext.value = context
   }
 
   return {
@@ -225,12 +236,15 @@ export const useSessionStore = defineStore('session', () => {
     debateRound,
     error,
     isLoading,
+    repoContext,
+    userId,
     // Computed
     isSessionActive,
     canStartClarification,
     canStartDebate,
     canStartJudge,
     canDownload,
+    hasRepoContext,
     // Actions
     createSession,
     submitIdea,
@@ -247,5 +261,6 @@ export const useSessionStore = defineStore('session', () => {
     setOverallVerdict,
     reset,
     loadSession,
+    setRepoContext,
   }
 })

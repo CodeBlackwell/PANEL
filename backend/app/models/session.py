@@ -55,6 +55,16 @@ class SessionConfig(BaseModel):
     debate_rounds: int = Field(default=5, ge=3, le=15)
 
 
+class RepoContext(BaseModel):
+    """Repository context for PRD generation from GitHub."""
+    repo_name: str
+    repo_full_name: str
+    description: Optional[str] = None
+    readme_content: Optional[str] = None
+    file_tree: list[str] = []
+    config_files: dict[str, str] = {}
+
+
 class Session(BaseModel):
     """Session state."""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -66,6 +76,10 @@ class Session(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     error_message: Optional[str] = None
+    # Optional user association (guest mode if None)
+    user_id: Optional[str] = None
+    # Repository context if session was created from a GitHub repo
+    repo_context: Optional[RepoContext] = None
 
 
 class CreateSessionResponse(BaseModel):
@@ -102,3 +116,5 @@ class SessionStatus(BaseModel):
     created_at: datetime
     updated_at: datetime
     error_message: Optional[str]
+    user_id: Optional[str] = None
+    repo_context: Optional[RepoContext] = None

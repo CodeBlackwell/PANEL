@@ -11,6 +11,7 @@ from .session import (
     SubmitAnswersRequest,
     ClarificationAnswer,
     SessionStatus,
+    RepoContext,
 )
 from .messages import (
     MessageType,
@@ -22,6 +23,12 @@ from .messages import (
     JudgeScore,
     JudgeEvaluation,
     SSEEvent,
+)
+from .user import (
+    User,
+    UserPublic,
+    TokenPayload,
+    TokenResponse,
 )
 
 __all__ = [
@@ -35,6 +42,7 @@ __all__ = [
     "SubmitAnswersRequest",
     "ClarificationAnswer",
     "SessionStatus",
+    "RepoContext",
     "MessageType",
     "AgentMessage",
     "ClarificationOption",
@@ -44,4 +52,8 @@ __all__ = [
     "JudgeScore",
     "JudgeEvaluation",
     "SSEEvent",
+    "User",
+    "UserPublic",
+    "TokenPayload",
+    "TokenResponse",
 ]

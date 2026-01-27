@@ -1,7 +1,8 @@
 """Session management endpoints."""
 
-from fastapi import APIRouter, HTTPException, status
-from typing import List
+from fastapi import APIRouter, HTTPException, status, Depends
+from typing import List, Optional
+from pydantic import BaseModel
 
 from ...models import (
     Session,
@@ -12,10 +13,18 @@ from ...models import (
     CreateSessionResponse,
     SubmitIdeaRequest,
     SessionStatus,
+    RepoContext,
+    User,
 )
 from ...services.conversation_store import conversation_store
+from ..dependencies import get_current_user_optional
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
+
+
+class CreateSessionRequest(BaseModel):
+    """Request to create a new session with optional repo context."""
+    repo_context: Optional[RepoContext] = None
 
 # Available agents with their metadata
 AVAILABLE_AGENTS: List[AgentInfo] = [
@@ -36,9 +45,23 @@ AVAILABLE_AGENTS: List[AgentInfo] = [
 
 
 @router.post("", response_model=CreateSessionResponse, status_code=status.HTTP_201_CREATED)
-async def create_session():
-    """Create a new session."""
-    session = conversation_store.create_session()
+async def create_session(
+    request: Optional[CreateSessionRequest] = None,
+    user: Optional[User] = Depends(get_current_user_optional),
+):
+    """
+    Create a new session.
+    If user is authenticated, session will be linked to the user.
+    If repo_context is provided, it will be attached to the session.
+    """
+    user_id = user.id if user else None
+    session = conversation_store.create_session(user_id=user_id)
+
+    # Attach repo context if provided
+    if request and request.repo_context:
+        session.repo_context = request.repo_context
+        conversation_store.save_session(session)
+
     return CreateSessionResponse(session_id=session.id, phase=session.phase)
 
 
@@ -57,6 +80,8 @@ async def get_session(session_id: str):
         created_at=session.created_at,
         updated_at=session.updated_at,
         error_message=session.error_message,
+        user_id=session.user_id,
+        repo_context=session.repo_context,
     )
 
 
@@ -80,6 +105,8 @@ async def submit_idea(session_id: str, request: SubmitIdeaRequest):
         created_at=session.created_at,
         updated_at=session.updated_at,
         error_message=session.error_message,
+        user_id=session.user_id,
+        repo_context=session.repo_context,
     )
 
 
@@ -112,6 +139,8 @@ async def configure_session(session_id: str, config: SessionConfig):
         created_at=session.created_at,
         updated_at=session.updated_at,
         error_message=session.error_message,
+        user_id=session.user_id,
+        repo_context=session.repo_context,
     )
 
 

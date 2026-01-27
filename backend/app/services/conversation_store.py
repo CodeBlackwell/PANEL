@@ -33,9 +33,9 @@ class ConversationStore:
         """Get the metadata directory for a session."""
         return self._session_dir(session_id) / "metadata"
 
-    def create_session(self) -> Session:
-        """Create a new session."""
-        session = Session()
+    def create_session(self, user_id: Optional[str] = None) -> Session:
+        """Create a new session, optionally linked to a user."""
+        session = Session(user_id=user_id)
         session_dir = self._session_dir(session.id)
         session_dir.mkdir(parents=True, exist_ok=True)
         self._transcripts_dir(session.id).mkdir(exist_ok=True)

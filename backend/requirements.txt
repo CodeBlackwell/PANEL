@@ -17,3 +17,7 @@ openai>=1.10.0
 # Utilities
 python-dotenv>=1.0.0
 aiofiles>=23.2.0
+
+# Authentication
+httpx>=0.26.0
+PyJWT>=2.8.0

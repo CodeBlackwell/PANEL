@@ -1,4 +1,15 @@
+import { getAuthHeaders, clearAuthToken } from './authApi'
+
 const API_BASE = '/api/v1'
+
+export interface RepoContext {
+  repo_name: string
+  repo_full_name: string
+  description: string | null
+  readme_content: string | null
+  file_tree: string[]
+  config_files: Record<string, string>
+}
 
 export interface Session {
   id: string
@@ -9,6 +20,8 @@ export interface Session {
   created_at: string
   updated_at: string
   error_message: string | null
+  user_id: string | null
+  repo_context: RepoContext | null
 }
 
 export interface SessionConfig {
@@ -46,8 +59,16 @@ export interface CreateSessionResponse {
   phase: string
 }
 
+export interface CreateSessionRequest {
+  repo_context?: RepoContext
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
+    if (response.status === 401) {
+      // Token expired or invalid - clear it
+      clearAuthToken()
+    }
     const error = await response.json().catch(() => ({ detail: 'Request failed' }))
     throw new Error(error.detail || `HTTP ${response.status}`)
   }
@@ -55,37 +76,55 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
-  async createSession(): Promise<CreateSessionResponse> {
+  async createSession(request?: CreateSessionRequest): Promise<CreateSessionResponse> {
     const response = await fetch(`${API_BASE}/sessions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: request ? JSON.stringify(request) : JSON.stringify({}),
     })
     return handleResponse(response)
   },
 
   async getSession(sessionId: string): Promise<Session> {
-    const response = await fetch(`${API_BASE}/sessions/${sessionId}`)
+    const response = await fetch(`${API_BASE}/sessions/${sessionId}`, {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    })
     return handleResponse(response)
   },
 
   async submitIdea(sessionId: string, idea: string): Promise<Session> {
     const response = await fetch(`${API_BASE}/sessions/${sessionId}/idea`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify({ idea }),
     })
     return handleResponse(response)
   },
 
   async getAgents(): Promise<AgentInfo[]> {
-    const response = await fetch(`${API_BASE}/sessions`)
+    const response = await fetch(`${API_BASE}/sessions`, {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    })
     return handleResponse(response)
   },
 
   async configureSession(sessionId: string, config: SessionConfig): Promise<Session> {
     const response = await fetch(`${API_BASE}/sessions/${sessionId}/config`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify(config),
     })
     return handleResponse(response)
@@ -94,7 +133,10 @@ export const api = {
   async submitAnswers(sessionId: string, answers: ClarificationAnswer[]): Promise<Session> {
     const response = await fetch(`${API_BASE}/sessions/${sessionId}/answers`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify({ answers }),
     })
     return handleResponse(response)
