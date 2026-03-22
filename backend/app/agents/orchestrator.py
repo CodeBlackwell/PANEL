@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from typing import AsyncGenerator, Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from ..config import settings
 from ..models import SessionPhase
@@ -20,6 +20,7 @@ class SessionContext:
 
     def __init__(self, session_id: str):
         self.session_id = session_id
+        self.created_at: datetime = datetime.utcnow()
         self.clarification_qa: List[Dict[str, str]] = []
         self.debate_messages: List[Dict[str, Any]] = []
         self.requirements: str = ""
@@ -60,6 +61,22 @@ def get_session_context(session_id: str) -> SessionContext:
     return _session_contexts[session_id]
 
 
+def release_session_context(session_id: str) -> None:
+    """Remove session context from memory when no longer needed."""
+    _session_contexts.pop(session_id, None)
+
+
+def cleanup_stale_contexts(timeout_minutes: int = 60) -> int:
+    """Remove contexts older than timeout_minutes. Returns count removed."""
+    cutoff = datetime.utcnow() - timedelta(minutes=timeout_minutes)
+    stale = [sid for sid, ctx in _session_contexts.items() if ctx.created_at < cutoff]
+    for sid in stale:
+        del _session_contexts[sid]
+    if stale:
+        logger.info(f"Cleaned up {len(stale)} stale session context(s)")
+    return len(stale)
+
+
 async def run_clarification(session_id: str) -> AsyncGenerator[Dict[str, Any], None]:
     """Run the clarification phase, yielding events for SSE."""
     logger.info(f"[CLARIFY] Starting clarification for session {session_id}")
@@ -70,6 +87,12 @@ async def run_clarification(session_id: str) -> AsyncGenerator[Dict[str, Any], N
         return
 
     context = get_session_context(session_id)
+
+    # Guard against infinite clarification loops
+    if session.clarification_round >= settings.max_clarification_rounds:
+        logger.info(f"[CLARIFY] Hit max rounds ({settings.max_clarification_rounds}), auto-completing")
+        yield {"type": "complete", "data": {"message": "Maximum clarification rounds reached"}}
+        return
 
     # Update phase
     session.phase = SessionPhase.CLARIFYING
@@ -83,10 +106,10 @@ async def run_clarification(session_id: str) -> AsyncGenerator[Dict[str, Any], N
         from autogen_ext.models.openai import OpenAIChatCompletionClient
         from .definitions import CLARIFIER_AGENT
 
-        logger.info(f"[CLARIFY] Creating model client for round {session.clarification_round}...")
+        logger.info(f"[CLARIFY] Creating fast model client for round {session.clarification_round}...")
 
         model_client = OpenAIChatCompletionClient(
-            model=settings.model_name,
+            model=settings.model_name_fast,
             api_key=settings.openai_api_key,
         )
 
@@ -308,14 +331,20 @@ Build on each other's ideas and reach consensus on key decisions."""
         from autogen_ext.models.openai import OpenAIChatCompletionClient
         from .definitions import DEBATE_AGENTS, MODERATOR_AGENT
 
-        logger.info(f"[DEBATE] Creating model client...")
+        logger.info(f"[DEBATE] Creating model clients (fast={settings.model_name_fast}, strong={settings.model_name})...")
 
-        model_client = OpenAIChatCompletionClient(
+        # Fast model for debate agents (bulk work)
+        fast_client = OpenAIChatCompletionClient(
+            model=settings.model_name_fast,
+            api_key=settings.openai_api_key,
+        )
+        # Strong model for moderator (synthesis is high-leverage)
+        strong_client = OpenAIChatCompletionClient(
             model=settings.model_name,
             api_key=settings.openai_api_key,
         )
 
-        # Create agents
+        # Create agents with fast model
         agents = []
         for agent_id in selected_agents:
             if agent_id in DEBATE_AGENTS:
@@ -324,21 +353,21 @@ Build on each other's ideas and reach consensus on key decisions."""
                     name=defn.name.replace(" ", "_"),
                     description=defn.description,
                     system_message=defn.system_prompt,
-                    model_client=model_client,
+                    model_client=fast_client,
                 )
                 agents.append(agent)
-                logger.info(f"[DEBATE] Created agent: {defn.name}")
+                logger.info(f"[DEBATE] Created agent: {defn.name} (fast)")
 
-        # Add moderator
+        # Add moderator with strong model
         mod_defn = MODERATOR_AGENT
         moderator = AssistantAgent(
             name=mod_defn.name,
             description=mod_defn.description,
             system_message=mod_defn.system_prompt,
-            model_client=model_client,
+            model_client=strong_client,
         )
         agents.append(moderator)
-        logger.info(f"[DEBATE] Created moderator")
+        logger.info(f"[DEBATE] Created moderator (strong)")
 
         # Run debate round by round
         for round_num in range(1, num_rounds + 1):
@@ -457,7 +486,7 @@ Create a PRD with these sections:
         prd_agent = AssistantAgent(
             name="PRD_Writer",
             system_message="You are a technical writer who creates comprehensive PRDs. Write in clear markdown format.",
-            model_client=model_client,
+            model_client=strong_client,
         )
 
         prd_team = RoundRobinGroupChat(
@@ -525,7 +554,7 @@ async def run_judicial_review(session_id: str) -> AsyncGenerator[Dict[str, Any],
         from .definitions import JUDGE_AGENTS
 
         model_client = OpenAIChatCompletionClient(
-            model=settings.model_name,
+            model=settings.model_name_fast,
             api_key=settings.openai_api_key,
         )
 
@@ -645,6 +674,9 @@ Provide your evaluation in JSON format as specified in your instructions."""
         readme_content = _generate_readme(session, context, result_data)
         conversation_store.save_readme(session_id, readme_content)
 
+        # Release session context from memory now that we're done
+        release_session_context(session_id)
+
         yield {"type": "complete", "data": {"message": "Judicial review complete"}}
 
     except Exception as e:
@@ -656,7 +688,7 @@ def _generate_readme(session, context: SessionContext, judge_result: dict) -> st
     """Generate the README.md file."""
     return f"""# PRD Package: {session.id}
 
-Generated by ArchitX Multi-Agent PRD Generator
+Generated by PANEL — PRD from Agent Negotiation & Expert Logic
 
 ## Overview
 
@@ -688,5 +720,5 @@ through a multi-agent AI system involving:
 
 ---
 
-*Generated by ArchitX - Multi-Agent PRD Generator*
+*Generated by PANEL — PRD from Agent Negotiation & Expert Logic*
 """

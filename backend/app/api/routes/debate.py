@@ -38,8 +38,8 @@ async def stream_debate(session_id: str):
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    # Allow starting debate after clarification is complete
-    if session.phase not in [SessionPhase.CLARIFYING, SessionPhase.DEBATING]:
+    # Allow starting debate after configuration or clarification
+    if session.phase not in [SessionPhase.CONFIGURED, SessionPhase.CLARIFYING, SessionPhase.DEBATING]:
         raise HTTPException(status_code=400, detail="Cannot start debate in current phase")
 
     return StreamingResponse(

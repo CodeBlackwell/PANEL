@@ -1,6 +1,10 @@
 """Authentication routes for GitHub OAuth."""
 
+import json
 import secrets
+import logging
+from datetime import datetime, timedelta
+from pathlib import Path
 from urllib.parse import urlencode
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import RedirectResponse
@@ -12,11 +16,32 @@ from ...services.user_store import user_store
 from ...services.auth_service import auth_service
 from ..dependencies import get_current_user
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# In-memory state storage for CSRF protection
-# In production, use Redis or similar
-_oauth_states: set[str] = set()
+# File-based OAuth state store (survives restarts)
+_OAUTH_STATE_FILE = Path(settings.storage_path) / ".oauth_states.json"
+_STATE_TTL_MINUTES = 10
+
+
+def _load_oauth_states() -> dict[str, str]:
+    """Load OAuth states from disk, pruning expired entries."""
+    if not _OAUTH_STATE_FILE.exists():
+        return {}
+    try:
+        with open(_OAUTH_STATE_FILE, "r") as f:
+            states = json.load(f)
+        cutoff = (datetime.utcnow() - timedelta(minutes=_STATE_TTL_MINUTES)).isoformat()
+        return {k: v for k, v in states.items() if v > cutoff}
+    except Exception:
+        return {}
+
+
+def _save_oauth_states(states: dict[str, str]) -> None:
+    """Save OAuth states to disk."""
+    _OAUTH_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(_OAUTH_STATE_FILE, "w") as f:
+        json.dump(states, f)
 
 
 @router.get("/github/login")
@@ -31,9 +56,11 @@ async def github_login():
             detail="GitHub OAuth not configured",
         )
 
-    # Generate state for CSRF protection
+    # Generate state for CSRF protection (persisted to disk)
     state = secrets.token_urlsafe(32)
-    _oauth_states.add(state)
+    states = _load_oauth_states()
+    states[state] = datetime.utcnow().isoformat()
+    _save_oauth_states(states)
 
     # Build GitHub authorization URL
     params = {
@@ -54,13 +81,15 @@ async def github_callback(code: str, state: str):
     Exchanges code for access token and creates/updates user.
     Redirects to frontend with JWT token.
     """
-    # Verify state for CSRF protection
-    if state not in _oauth_states:
+    # Verify state for CSRF protection (from disk)
+    states = _load_oauth_states()
+    if state not in states:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid state parameter",
+            detail="Invalid or expired state parameter",
         )
-    _oauth_states.discard(state)
+    del states[state]
+    _save_oauth_states(states)
 
     # Exchange code for access token
     async with httpx.AsyncClient() as client:

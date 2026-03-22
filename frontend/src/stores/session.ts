@@ -149,7 +149,16 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   function addDebateMessage(msg: DebateMessage) {
-    debateMessages.value.push(msg)
+    // Deduplicate: skip if same agent + same content in same round already exists
+    const isDupe = debateMessages.value.some(
+      (existing) =>
+        existing.agentName === msg.agentName &&
+        existing.roundNumber === msg.roundNumber &&
+        existing.content === msg.content
+    )
+    if (!isDupe) {
+      debateMessages.value.push(msg)
+    }
   }
 
   function addJudgeScore(score: JudgeScore) {

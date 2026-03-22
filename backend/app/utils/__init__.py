@@ -1,1 +1,1 @@
-"""Utility modules for ArchitX backend."""
+"""Utility modules for PANEL backend."""

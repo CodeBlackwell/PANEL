@@ -1,4 +1,4 @@
-# ArchitX - Development Commands
+# PANEL - Development Commands
 set shell := ["bash", "-uc"]
 
 # Run both backend and frontend (default)

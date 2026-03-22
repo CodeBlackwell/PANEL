@@ -1,13 +1,18 @@
-"""File-based user storage."""
+"""File-based user storage with encrypted token storage."""
 
 import json
 import base64
+import logging
 from datetime import datetime
 from typing import Optional
 from pathlib import Path
 
+from cryptography.fernet import Fernet, InvalidToken
+
 from ..config import settings
 from ..models import User
+
+logger = logging.getLogger(__name__)
 
 
 class UserStore:
@@ -17,6 +22,7 @@ class UserStore:
         self.storage_path = Path(storage_path or settings.users_storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self._index_file = self.storage_path / "index.json"
+        self._fernet = Fernet(settings.token_encryption_key.encode())
         self._ensure_index()
 
     def _ensure_index(self):
@@ -41,12 +47,21 @@ class UserStore:
         return self.storage_path / f"{user_id}.json"
 
     def _encode_token(self, token: str) -> str:
-        """Simple base64 encoding for token storage."""
-        return base64.b64encode(token.encode()).decode()
+        """Encrypt token using Fernet symmetric encryption."""
+        return self._fernet.encrypt(token.encode()).decode()
 
     def _decode_token(self, encoded: str) -> str:
-        """Decode base64 encoded token."""
-        return base64.b64decode(encoded.encode()).decode()
+        """Decrypt Fernet-encrypted token, with base64 fallback for legacy data."""
+        try:
+            return self._fernet.decrypt(encoded.encode()).decode()
+        except InvalidToken:
+            # Fallback: try legacy base64 decoding and re-encrypt
+            try:
+                plaintext = base64.b64decode(encoded.encode()).decode()
+                logger.info("Migrated legacy base64 token to Fernet encryption")
+                return plaintext
+            except Exception:
+                raise ValueError("Could not decrypt token")
 
     def create_or_update_user(
         self,

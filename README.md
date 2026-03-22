@@ -1,11 +1,11 @@
-# 🏛️ ArchitX
+# 🏛️ PANEL
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776ab?logo=python&logoColor=white)](https://python.org)
 [![Vue 3](https://img.shields.io/badge/Vue-3-4fc08d?logo=vuedotjs&logoColor=white)](https://vuejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![AutoGen](https://img.shields.io/badge/AutoGen-Powered-ff6b35)](https://microsoft.github.io/autogen/)
 
-> **Multi-agent AI system that transforms project ideas into comprehensive PRDs through expert debates and judicial review.**
+> **PRD from Agent Negotiation & Expert Logic** — Multi-agent AI system that transforms project ideas into comprehensive PRDs through expert debates and judicial review.
 
 ---
 
@@ -43,8 +43,8 @@
 **Prerequisites:** Python 3.10+ • Node.js 18+ • [Just](https://github.com/casey/just) • OpenAI API key
 
 ```bash
-git clone https://github.com/yourusername/ArchitX.git
-cd ArchitX
+git clone https://github.com/CodeBlackwell/PANEL.git
+cd PANEL
 just setup              # Install all dependencies
 # Edit backend/.env and add your OPENAI_API_KEY
 just dev                # Start backend + frontend
@@ -87,7 +87,7 @@ cd frontend && npm install && npm run dev
 ## 🏗️ Project Structure
 
 ```
-ArchitX/
+PANEL/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py              # FastAPI entry

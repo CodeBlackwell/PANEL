@@ -39,7 +39,7 @@ function handleUseGitHub() {
     <!-- Hero Section -->
     <div class="text-center mb-12">
       <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl mb-6 shadow-lg shadow-primary-500/25">
-        <span class="text-white font-bold text-2xl">AX</span>
+        <span class="text-white font-bold text-2xl">PN</span>
       </div>
       <h1 class="text-4xl font-bold text-dark-100 mb-4">
         Transform Ideas into

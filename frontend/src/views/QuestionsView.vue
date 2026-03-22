@@ -295,6 +295,16 @@ function scrollToBottom() {
       </button>
     </div>
 
+    <!-- Skip to Debate (shown after at least 1 round of answers submitted) -->
+    <div v-if="!clarificationComplete && store.clarificationRound >= 1 && isWaitingForAnswer" class="text-center mb-6">
+      <button
+        @click="proceedToDebate"
+        class="text-sm text-dark-400 hover:text-primary-400 underline underline-offset-4 transition-colors"
+      >
+        Skip remaining questions and start debate
+      </button>
+    </div>
+
     <!-- Complete -->
     <div v-if="clarificationComplete" class="card p-6 text-center">
       <div class="w-16 h-16 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-4">

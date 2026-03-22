@@ -1,1 +1,1 @@
-"""ArchitX Backend Application."""
+"""PANEL Backend Application."""

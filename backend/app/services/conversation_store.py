@@ -1,7 +1,9 @@
-"""File-based session and conversation storage."""
+"""File-based session and conversation storage with file locking."""
 
+import fcntl
 import json
 import os
+from contextlib import contextmanager
 from datetime import datetime
 from typing import Optional
 from pathlib import Path
@@ -16,6 +18,19 @@ class ConversationStore:
     def __init__(self, storage_path: str = None):
         self.storage_path = Path(storage_path or settings.storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
+
+    @contextmanager
+    def _file_lock(self, filepath: Path):
+        """Acquire an exclusive file lock for safe concurrent writes."""
+        lock_path = filepath.with_suffix(filepath.suffix + ".lock")
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        lock_file = open(lock_path, "w")
+        try:
+            fcntl.flock(lock_file, fcntl.LOCK_EX)
+            yield
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+            lock_file.close()
 
     def _session_dir(self, session_id: str) -> Path:
         """Get the directory for a session."""
@@ -53,11 +68,12 @@ class ConversationStore:
         return Session(**data)
 
     def save_session(self, session: Session) -> None:
-        """Save session state."""
+        """Save session state with file locking."""
         session.updated_at = datetime.utcnow()
         session_file = self._session_file(session.id)
-        with open(session_file, "w") as f:
-            json.dump(session.model_dump(mode="json"), f, default=str, indent=2)
+        with self._file_lock(session_file):
+            with open(session_file, "w") as f:
+                json.dump(session.model_dump(mode="json"), f, default=str, indent=2)
 
     def update_phase(self, session_id: str, phase: SessionPhase) -> Optional[Session]:
         """Update session phase."""
@@ -81,33 +97,37 @@ class ConversationStore:
         return session
 
     def append_clarification(self, session_id: str, content: str) -> None:
-        """Append to clarification transcript."""
+        """Append to clarification transcript with file locking."""
         transcript_file = self._transcripts_dir(session_id) / "clarification.md"
-        with open(transcript_file, "a") as f:
-            f.write(content + "\n\n")
+        with self._file_lock(transcript_file):
+            with open(transcript_file, "a") as f:
+                f.write(content + "\n\n")
 
     def append_debate(self, session_id: str, content: str) -> None:
-        """Append to debate transcript."""
+        """Append to debate transcript with file locking."""
         transcript_file = self._transcripts_dir(session_id) / "debate.md"
-        with open(transcript_file, "a") as f:
-            f.write(content + "\n\n")
+        with self._file_lock(transcript_file):
+            with open(transcript_file, "a") as f:
+                f.write(content + "\n\n")
 
     def append_review(self, session_id: str, content: str) -> None:
-        """Append to review transcript."""
+        """Append to review transcript with file locking."""
         transcript_file = self._transcripts_dir(session_id) / "review.md"
-        with open(transcript_file, "a") as f:
-            f.write(content + "\n\n")
+        with self._file_lock(transcript_file):
+            with open(transcript_file, "a") as f:
+                f.write(content + "\n\n")
 
     def save_messages(self, session_id: str, phase: str, messages: list[AgentMessage]) -> None:
-        """Save messages for a phase."""
+        """Save messages for a phase with file locking."""
         messages_file = self._metadata_dir(session_id) / f"{phase}_messages.json"
-        existing = []
-        if messages_file.exists():
-            with open(messages_file, "r") as f:
-                existing = json.load(f)
-        existing.extend([m.model_dump(mode="json") for m in messages])
-        with open(messages_file, "w") as f:
-            json.dump(existing, f, default=str, indent=2)
+        with self._file_lock(messages_file):
+            existing = []
+            if messages_file.exists():
+                with open(messages_file, "r") as f:
+                    existing = json.load(f)
+            existing.extend([m.model_dump(mode="json") for m in messages])
+            with open(messages_file, "w") as f:
+                json.dump(existing, f, default=str, indent=2)
 
     def get_messages(self, session_id: str, phase: str) -> list[AgentMessage]:
         """Get messages for a phase."""
@@ -119,10 +139,11 @@ class ConversationStore:
         return [AgentMessage(**m) for m in data]
 
     def save_scores(self, session_id: str, scores: dict) -> None:
-        """Save judge scores."""
+        """Save judge scores with file locking."""
         scores_file = self._metadata_dir(session_id) / "scores.json"
-        with open(scores_file, "w") as f:
-            json.dump(scores, f, indent=2)
+        with self._file_lock(scores_file):
+            with open(scores_file, "w") as f:
+                json.dump(scores, f, indent=2)
 
     def save_prd(self, session_id: str, prd_content: str) -> None:
         """Save the generated PRD."""

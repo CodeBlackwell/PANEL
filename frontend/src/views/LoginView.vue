@@ -23,11 +23,11 @@ function handleLogin() {
     <div class="card p-8 text-center">
       <!-- Logo -->
       <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl mb-6 shadow-lg shadow-primary-500/25">
-        <span class="text-white font-bold text-xl">AX</span>
+        <span class="text-white font-bold text-xl">PN</span>
       </div>
 
       <h1 class="text-2xl font-bold text-dark-100 mb-2">
-        Sign in to ArchitX
+        Sign in to PANEL
       </h1>
       <p class="text-dark-400 mb-8">
         Connect your GitHub account to access your private repositories.

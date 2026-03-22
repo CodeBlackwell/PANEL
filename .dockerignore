@@ -1,0 +1,11 @@
+backend/venv/
+backend/__pycache__/
+backend/.pytest_cache/
+backend/sessions/
+backend/users/
+frontend/node_modules/
+frontend/dist/
+.git/
+*.md
+examples/
+agents/

@@ -2,6 +2,7 @@
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
 python-multipart>=0.0.6
+slowapi>=0.1.9
 
 # Pydantic for data validation
 pydantic>=2.5.0
@@ -18,6 +19,12 @@ openai>=1.10.0
 python-dotenv>=1.0.0
 aiofiles>=23.2.0
 
-# Authentication
+# Authentication & encryption
 httpx>=0.26.0
 PyJWT>=2.8.0
+cryptography>=42.0.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+httpx>=0.26.0
