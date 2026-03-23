@@ -50,7 +50,7 @@
     @apply btn text-chalk-dim hover:text-chalk hover:bg-slate-light;
   }
   .card {
-    @apply bg-slate-light rounded-lg border border-slate-border;
+    @apply bg-slate-light/90 backdrop-blur-sm rounded-lg border border-slate-border;
   }
   .input {
     @apply w-full px-4 py-3 bg-slate border border-slate-border rounded text-chalk
@@ -64,15 +64,29 @@
     @apply block text-xs font-medium text-chalk-dim mb-1.5 font-body uppercase tracking-wider;
   }
 
-  /* Section dividers on the board */
+  /* Section dividers — chalk line draw animation */
   .board-section-header {
-    @apply flex items-center gap-3 mb-4;
+    @apply flex items-center gap-3 mb-5;
   }
   .board-section-header h2 {
-    @apply font-heading text-sm font-semibold text-chalk-dim tracking-wider uppercase whitespace-nowrap;
+    @apply font-chalk text-xl text-chalk-dim tracking-wide whitespace-nowrap;
   }
   .board-section-header .divider {
-    @apply h-px flex-1 bg-slate-border;
+    @apply h-px flex-1 bg-chalk-faint/30 origin-center animate-line-draw;
+  }
+
+  /* Chalk handwriting label — used for agent names, badges, round labels */
+  .chalk-label {
+    @apply font-chalk text-lg leading-none;
+  }
+  .chalk-label-sm {
+    @apply font-chalk text-base leading-none;
+  }
+
+  /* Chalk dust particle (decorative) */
+  .chalk-dust::after {
+    content: '';
+    @apply absolute -top-1 -right-1 w-1 h-1 rounded-full bg-chalk/40 animate-chalk-dust;
   }
 }
 
@@ -101,12 +115,35 @@ input[type="range"] {
 }
 input[type="range"]::-webkit-slider-thumb {
   @apply appearance-none w-4 h-4 bg-dusty rounded-full cursor-pointer;
+  box-shadow: 0 0 6px rgba(107, 140, 174, 0.4);
 }
 input[type="range"]::-moz-range-thumb {
   @apply w-4 h-4 bg-dusty rounded-full cursor-pointer border-0;
+  box-shadow: 0 0 6px rgba(107, 140, 174, 0.4);
 }
 
 /* Checkbox styling */
 input[type="checkbox"] {
   @apply rounded border-slate-border text-dusty focus:ring-dusty focus:ring-offset-0 bg-slate;
+}
+
+/* Stagger animation delays — applied via inline style or utility */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+
+/* Chalk text opacity — slightly less than 100% for authentic chalk feel */
+.chalk-text {
+  opacity: 0.92;
+}
+
+/* Glow effect for active elements */
+.glow-dusty {
+  box-shadow: 0 0 8px 2px rgba(107, 140, 174, 0.35);
+}
+.glow-yellow {
+  box-shadow: 0 0 8px 2px rgba(232, 216, 140, 0.3);
 }

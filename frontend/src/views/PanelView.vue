@@ -335,7 +335,7 @@ onMounted(async () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
           </svg>
         </button>
-        <span class="text-chalk-faint font-heading text-xs tracking-[0.2em] select-none" style="writing-mode: vertical-lr">
+        <span class="text-chalk-faint font-chalk text-lg select-none" style="writing-mode: vertical-lr">
           PANEL
         </span>
       </div>
@@ -344,7 +344,7 @@ onMounted(async () => {
       <div v-else class="flex flex-col h-full">
         <!-- Header -->
         <div class="px-5 py-4 border-b border-slate-border flex items-center justify-between flex-shrink-0">
-          <span class="font-heading text-lg font-bold text-chalk tracking-wide">PANEL</span>
+          <span class="font-chalk text-2xl font-bold text-chalk">PANEL</span>
           <button
             v-if="store.sessionId"
             @click="sidebarCollapsed = true"
@@ -412,7 +412,7 @@ onMounted(async () => {
             <div>
               <div class="flex items-center justify-between mb-1">
                 <label class="label mb-0">Debate Rounds</label>
-                <span class="text-sm font-heading font-bold text-yellow">{{ debateRounds }}</span>
+                <span class="font-chalk text-2xl font-bold text-yellow">{{ debateRounds }}</span>
               </div>
               <input type="range" v-model.number="debateRounds" min="3" max="10" class="w-full mt-1" />
               <div class="flex justify-between text-[9px] text-chalk-faint mt-0.5">
@@ -424,7 +424,7 @@ onMounted(async () => {
             <!-- Start button -->
             <button
               @click="handleStart"
-              class="btn-primary w-full py-3 text-base font-heading font-semibold tracking-wide"
+              class="btn-primary w-full py-3 font-chalk text-xl tracking-wide"
               :disabled="!canStart || isStarting"
               :class="{ 'opacity-50 cursor-not-allowed': !canStart || isStarting }"
             >
@@ -467,10 +467,10 @@ onMounted(async () => {
         <!-- Empty state -->
         <div v-if="isIdle" class="flex items-center justify-center h-full">
           <div class="text-center max-w-md">
-            <h1 class="font-heading text-4xl font-bold text-chalk mb-4 tracking-tight">
+            <h1 class="font-chalk text-6xl text-chalk mb-4">
               The Board
             </h1>
-            <p class="text-chalk-dim text-base leading-relaxed">
+            <p class="text-chalk-dim text-base leading-relaxed font-body">
               Describe your project in the sidebar, select your expert agents, and let the debate begin.
             </p>
             <p class="text-chalk-faint text-sm mt-6 italic font-heading">
@@ -572,7 +572,7 @@ onMounted(async () => {
                 <span class="w-1.5 h-1.5 bg-dusty rounded-full animate-bounce" style="animation-delay:150ms" />
                 <span class="w-1.5 h-1.5 bg-dusty rounded-full animate-bounce" style="animation-delay:300ms" />
               </span>
-              Generating questions...
+              <span class="font-chalk text-base">Generating questions...</span>
             </div>
           </section>
 
@@ -592,13 +592,13 @@ onMounted(async () => {
                 <span class="w-1.5 h-1.5 bg-dusty rounded-full animate-bounce" style="animation-delay:150ms" />
                 <span class="w-1.5 h-1.5 bg-dusty rounded-full animate-bounce" style="animation-delay:300ms" />
               </span>
-              Agents discussing... (Round {{ currentDebateRound }}/{{ totalDebateRounds }})
+              <span class="font-chalk text-base">Agents discussing... (Round {{ currentDebateRound }}/{{ totalDebateRounds }})</span>
             </div>
           </section>
 
           <!-- ── DRAFTING ── -->
           <div v-if="store.phase === 'drafting'" class="text-center py-8 animate-chalk-fade">
-            <p class="font-heading text-lg text-yellow italic">Synthesizing PRD...</p>
+            <p class="font-chalk text-3xl text-yellow glow-yellow inline-block px-4 py-2">Synthesizing PRD...</p>
           </div>
 
           <!-- ── JUDGE ── -->
@@ -627,23 +627,24 @@ onMounted(async () => {
                     {{ judgeLabel(judge.judgeType).slice(0, 2).toUpperCase() }}
                   </div>
                   <div>
-                    <div class="text-sm font-heading font-semibold text-chalk">{{ judgeLabel(judge.judgeType) }}</div>
+                    <div class="font-chalk text-xl text-chalk">{{ judgeLabel(judge.judgeType) }}</div>
                   </div>
                 </div>
 
                 <div class="space-y-2">
                   <ScoreBar
-                    v-for="(score, key) in judge.scores"
+                    v-for="(score, key, idx) in judge.scores"
                     :key="String(key)"
                     :label="String(key)"
                     :score="Number(score)"
                     :color="judgeColor(judge.judgeType)"
+                    :stagger-index="idx as number"
                   />
                 </div>
 
                 <div class="pt-2 border-t border-slate-border flex justify-between items-center">
-                  <span class="text-xs text-chalk-faint">Overall</span>
-                  <span class="text-xl font-heading font-bold" :class="{
+                  <span class="font-chalk text-base text-chalk-faint">Overall</span>
+                  <span class="font-chalk text-3xl font-bold" :class="{
                     'text-yellow': judge.judgeType === 'business',
                     'text-dusty': judge.judgeType === 'technical',
                     'text-agent-devops': judge.judgeType === 'feasibility',
@@ -659,7 +660,7 @@ onMounted(async () => {
                 <span class="w-1.5 h-1.5 bg-yellow rounded-full animate-bounce" style="animation-delay:150ms" />
                 <span class="w-1.5 h-1.5 bg-yellow rounded-full animate-bounce" style="animation-delay:300ms" />
               </span>
-              {{ currentJudge ? `${judgeLabel(currentJudge)} judge evaluating...` : 'Evaluating...' }}
+              <span class="font-chalk text-base">{{ currentJudge ? `${judgeLabel(currentJudge)} judge evaluating...` : 'Evaluating...' }}</span>
             </div>
           </section>
 
@@ -672,8 +673,8 @@ onMounted(async () => {
             </div>
 
             <div class="card p-8 text-center">
-              <div class="font-heading text-5xl font-bold text-yellow mb-2">{{ averageScore }}</div>
-              <p class="text-chalk-faint text-sm mb-4">Average Score</p>
+              <div class="font-chalk text-7xl font-bold text-yellow glow-yellow inline-block mb-2">{{ averageScore }}</div>
+              <p class="font-chalk text-xl text-chalk-faint mb-4">Average Score</p>
               <p v-if="store.overallVerdict" class="text-chalk-dim text-sm mb-8 max-w-lg mx-auto leading-relaxed">
                 {{ store.overallVerdict }}
               </p>
@@ -695,16 +696,16 @@ onMounted(async () => {
         <div class="flex items-center gap-2 w-full">
           <template v-for="(label, idx) in ['Clarify', 'Debate', 'Judge', 'Done']" :key="label">
             <div
-              class="w-2 h-2 rounded-full transition-all duration-500"
+              class="w-2.5 h-2.5 rounded-full transition-all duration-500"
               :class="{
-                'bg-dusty scale-125': idx === phaseIndex,
+                'bg-dusty scale-125 animate-glow-pulse text-dusty': idx === phaseIndex,
                 'bg-yellow': idx < phaseIndex,
                 'bg-slate-border': idx > phaseIndex,
               }"
             />
             <span
               v-if="idx === phaseIndex"
-              class="text-[10px] text-chalk-dim font-medium tracking-wide"
+              class="font-chalk text-base text-chalk-dim"
             >
               {{ label }}
             </span>

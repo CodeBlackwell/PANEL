@@ -7,73 +7,119 @@ const props = defineProps<{
   content: string
   messageType?: string
   roundNumber?: number
+  staggerIndex?: number
 }>()
 
-const avatarClass = computed(() => {
-  return `agent-${props.agentType}`
+// Map agent type to its chalk color CSS variable for inline styles
+const agentColor = computed(() => {
+  const colors: Record<string, string> = {
+    architect: '#7eaac4',
+    devops: '#7cb88c',
+    security: '#c47e7e',
+    ux: '#a77ec4',
+    qa: '#c4b87e',
+    product_manager: '#c47eaa',
+    data_engineer: '#7ec4c4',
+    ml_engineer: '#c4a07e',
+    frontend_dev: '#7e8cc4',
+    backend_dev: '#7ec4a0',
+    mobile_dev: '#c47e94',
+    business_analyst: '#c4b07e',
+    tech_lead: '#7ec4b0',
+    moderator: '#8a8a8a',
+    clarifier: '#9a7ec4',
+    user: '#6b8cae',
+    judge_business: '#e8d88c',
+    judge_technical: '#6b8cae',
+    judge_feasibility: '#7cb88c',
+  }
+  return colors[props.agentType] || '#8a8a8a'
 })
 
 const messageTypeLabel = computed(() => {
-  const labels: Record<string, { text: string; class: string }> = {
-    proposal: { text: 'Proposal', class: 'bg-dusty/15 text-dusty' },
-    critique: { text: 'Critique', class: 'bg-agent-security/15 text-agent-security' },
-    agreement: { text: 'Agreement', class: 'bg-agent-devops/15 text-agent-devops' },
-    summary: { text: 'Summary', class: 'bg-agent-ux/15 text-agent-ux' },
-    question: { text: 'Question', class: 'bg-agent-clarifier/15 text-agent-clarifier' },
-    answer: { text: 'Answer', class: 'bg-dusty/15 text-dusty' },
-    evaluation: { text: 'Evaluation', class: 'bg-yellow/15 text-yellow' },
+  const labels: Record<string, string> = {
+    proposal: 'Proposal',
+    critique: 'Critique',
+    agreement: 'Agreement',
+    summary: 'Summary',
+    question: 'Question',
+    answer: 'Answer',
+    evaluation: 'Evaluation',
   }
   return labels[props.messageType || ''] || null
 })
 
-const initials = computed(() => {
-  return props.agentName.slice(0, 2).toUpperCase()
-})
-
 const isUser = computed(() => props.agentType === 'user')
+
+const staggerDelay = computed(() => {
+  const idx = props.staggerIndex ?? 0
+  return `${idx * 0.08}s`
+})
 </script>
 
 <template>
   <div
-    class="flex gap-3 animate-chalk-in"
-    :class="{ 'flex-row-reverse': isUser }"
+    class="animate-chalk-in"
+    :style="{ animationDelay: staggerDelay }"
   >
-    <!-- Avatar -->
+    <!-- User answers: compact, right-aligned -->
     <div
-      class="w-8 h-8 rounded-full flex items-center justify-center text-slate font-bold text-xs shrink-0"
-      :class="avatarClass"
+      v-if="isUser"
+      class="ml-12 pl-4 pr-4 py-3 border-l-[3px] border rounded-sm"
+      :style="{
+        borderLeftColor: agentColor,
+        borderColor: agentColor + '30',
+        borderLeftWidth: '3px',
+        backgroundColor: agentColor + '18',
+      }"
     >
-      {{ initials }}
+      <div class="flex items-center gap-2 mb-1 justify-end">
+        <span class="font-chalk text-base" :style="{ color: agentColor }">You</span>
+      </div>
+      <p class="text-sm leading-relaxed whitespace-pre-wrap text-right" :style="{ color: agentColor }">{{ content }}</p>
     </div>
 
-    <!-- Message Content -->
+    <!-- Agent messages: chalk frame -->
     <div
-      class="flex-1 max-w-[85%]"
-      :class="{ 'text-right': isUser }"
+      v-else
+      class="pl-4 pr-4 py-3 border-l-[3px] border rounded-sm transition-colors duration-300"
+      :style="{
+        borderLeftColor: agentColor,
+        borderColor: agentColor + '25',
+        borderLeftWidth: '3px',
+        backgroundColor: agentColor + '18',
+      }"
     >
-      <div class="flex items-center gap-2 mb-1" :class="{ 'justify-end': isUser }">
-        <span class="font-medium text-chalk text-sm">{{ agentName }}</span>
+      <!-- Header: agent name + type badge -->
+      <div class="flex items-baseline justify-between mb-2">
+        <div class="flex items-baseline gap-2">
+          <span
+            class="font-chalk text-xl font-semibold"
+            :style="{ color: agentColor }"
+          >
+            {{ agentName }}
+          </span>
+          <span v-if="roundNumber" class="font-chalk text-sm text-chalk-faint">
+            r{{ roundNumber }}
+          </span>
+        </div>
         <span
           v-if="messageTypeLabel"
-          class="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
-          :class="messageTypeLabel.class"
+          class="font-chalk text-base px-2 rounded"
+          :style="{
+            color: agentColor,
+            backgroundColor: agentColor + '15',
+          }"
         >
-          {{ messageTypeLabel.text }}
-        </span>
-        <span v-if="roundNumber" class="text-[10px] text-chalk-faint">
-          Round {{ roundNumber }}
+          {{ messageTypeLabel }}
         </span>
       </div>
 
-      <div
-        class="rounded-lg px-4 py-3 text-sm leading-relaxed"
-        :class="{
-          'bg-slate border border-slate-border text-chalk-dim': !isUser,
-          'bg-dusty/15 border border-dusty/20 text-chalk': isUser,
-        }"
-      >
-        <p class="whitespace-pre-wrap">{{ content }}</p>
-      </div>
+      <!-- Message body — in agent's chalk color, serif font -->
+      <p
+        class="text-sm leading-relaxed whitespace-pre-wrap pr-2 font-heading"
+        :style="{ color: agentColor, opacity: 0.85 }"
+      >{{ content }}</p>
     </div>
   </div>
 </template>
