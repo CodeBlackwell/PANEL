@@ -29,26 +29,12 @@ onMounted(async () => {
   try {
     await authStore.handleCallback(token)
     status.value = 'success'
-
-    // Short delay before redirect for visual feedback
-    setTimeout(() => {
-      const redirectPath = authStore.getRedirectPath()
-      // If redirect was to repos and we have it stored, go there
-      if (redirectPath.includes('/repos')) {
-        router.push('/repos')
-      } else {
-        router.push(redirectPath)
-      }
-    }, 1000)
+    setTimeout(() => router.push('/'), 1000)
   } catch (e) {
     status.value = 'error'
     errorMessage.value = e instanceof Error ? e.message : 'Authentication failed'
   }
 })
-
-function retryLogin() {
-  router.push('/login')
-}
 
 function goHome() {
   router.push('/')
@@ -56,66 +42,43 @@ function goHome() {
 </script>
 
 <template>
-  <div class="max-w-md mx-auto mt-16">
-    <div class="card p-8 text-center">
+  <div class="flex items-center justify-center h-full">
+    <div class="card p-8 text-center max-w-sm">
       <!-- Processing -->
       <div v-if="status === 'processing'">
-        <div class="inline-flex items-center justify-center w-16 h-16 mb-6">
-          <svg class="animate-spin h-10 w-10 text-primary-400" fill="none" viewBox="0 0 24 24">
+        <div class="inline-flex items-center justify-center w-12 h-12 mb-4">
+          <svg class="animate-spin h-8 w-8 text-dusty" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
           </svg>
         </div>
-        <h1 class="text-xl font-bold text-dark-100 mb-2">
-          Completing sign in...
-        </h1>
-        <p class="text-dark-400">
-          Please wait while we verify your authentication.
-        </p>
+        <h1 class="text-lg font-heading font-bold text-chalk mb-1">Signing in...</h1>
+        <p class="text-chalk-dim text-sm">Verifying authentication.</p>
       </div>
 
       <!-- Success -->
       <div v-else-if="status === 'success'">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-6">
-          <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-agent-devops/20 rounded-full mb-4">
+          <svg class="w-6 h-6 text-agent-devops" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
           </svg>
         </div>
-        <h1 class="text-xl font-bold text-dark-100 mb-2">
-          Welcome, {{ authStore.username }}!
+        <h1 class="text-lg font-heading font-bold text-chalk mb-1">
+          Welcome{{ authStore.user?.username ? ', ' + authStore.user.username : '' }}
         </h1>
-        <p class="text-dark-400">
-          Redirecting you now...
-        </p>
+        <p class="text-chalk-dim text-sm">Redirecting...</p>
       </div>
 
       <!-- Error -->
       <div v-else>
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 rounded-full mb-6">
-          <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-agent-security/20 rounded-full mb-4">
+          <svg class="w-6 h-6 text-agent-security" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </div>
-        <h1 class="text-xl font-bold text-dark-100 mb-2">
-          Authentication Failed
-        </h1>
-        <p class="text-dark-400 mb-6">
-          {{ errorMessage }}
-        </p>
-        <div class="flex gap-3 justify-center">
-          <button
-            @click="retryLogin"
-            class="btn-primary px-6 py-2"
-          >
-            Try Again
-          </button>
-          <button
-            @click="goHome"
-            class="btn-secondary px-6 py-2"
-          >
-            Go Home
-          </button>
-        </div>
+        <h1 class="text-lg font-heading font-bold text-chalk mb-1">Authentication Failed</h1>
+        <p class="text-chalk-dim text-sm mb-4">{{ errorMessage }}</p>
+        <button @click="goHome" class="btn-primary px-6 py-2">Back to PANEL</button>
       </div>
     </div>
   </div>

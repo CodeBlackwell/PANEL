@@ -8,57 +8,71 @@ export default {
   theme: {
     extend: {
       colors: {
-        dark: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617',
+        // Euler's Blackboard palette
+        slate: {
+          DEFAULT: '#1e2127',
+          light: '#282c34',
+          border: '#353a44',
         },
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+        chalk: {
+          DEFAULT: '#e8e4dc',
+          dim: '#a8a49c',
+          faint: '#6b6760',
         },
-        accent: {
-          50: '#fdf4ff',
-          100: '#fae8ff',
-          200: '#f5d0fe',
-          300: '#f0abfc',
-          400: '#e879f9',
-          500: '#d946ef',
-          600: '#c026d3',
-          700: '#a21caf',
-          800: '#86198f',
-          900: '#701a75',
+        dusty: {
+          DEFAULT: '#6b8cae',
+          light: '#8aa8c8',
+          dim: '#4a6a8a',
         },
+        yellow: {
+          DEFAULT: '#e8d88c',
+          dim: '#c4b66e',
+        },
+        // Muted chalk agent colors
+        agent: {
+          arch: '#7eaac4',
+          devops: '#7cb88c',
+          security: '#c47e7e',
+          ux: '#a77ec4',
+          qa: '#c4b87e',
+          pm: '#c47eaa',
+          data: '#7ec4c4',
+          ml: '#c4a07e',
+          frontend: '#7e8cc4',
+          backend: '#7ec4a0',
+          mobile: '#c47e94',
+          ba: '#c4b07e',
+          lead: '#7ec4b0',
+          mod: '#8a8a8a',
+          clarifier: '#9a7ec4',
+          judge: '#7e94c4',
+        },
+      },
+      fontFamily: {
+        heading: ['"STIX Two Text"', 'Spectral', 'Georgia', 'serif'],
+        body: ['Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'fade-in': 'fadeIn 0.3s ease-out',
+        'chalk-in': 'chalkIn 0.4s ease-out',
+        'chalk-fade': 'chalkFade 0.6s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',
+        'score-fill': 'scoreFill 1.2s ease-out forwards',
       },
       keyframes: {
-        fadeIn: {
+        chalkIn: {
+          '0%': { opacity: '0', filter: 'blur(2px)', transform: 'translateY(4px)' },
+          '100%': { opacity: '1', filter: 'blur(0)', transform: 'translateY(0)' },
+        },
+        chalkFade: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
         slideUp: {
           '0%': { transform: 'translateY(10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        scoreFill: {
+          '0%': { width: '0%' },
         },
       },
     },

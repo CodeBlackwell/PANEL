@@ -10,39 +10,18 @@ const props = defineProps<{
 }>()
 
 const avatarClass = computed(() => {
-  const colorMap: Record<string, string> = {
-    architect: 'bg-blue-600',
-    devops: 'bg-green-600',
-    security: 'bg-red-600',
-    ux: 'bg-purple-600',
-    qa: 'bg-yellow-600',
-    product_manager: 'bg-pink-600',
-    data_engineer: 'bg-cyan-600',
-    ml_engineer: 'bg-orange-600',
-    frontend_dev: 'bg-indigo-600',
-    backend_dev: 'bg-teal-600',
-    mobile_dev: 'bg-rose-600',
-    business_analyst: 'bg-amber-600',
-    tech_lead: 'bg-emerald-600',
-    moderator: 'bg-gray-600',
-    clarifier: 'bg-violet-600',
-    user: 'bg-dark-600',
-    judge_business: 'bg-amber-600',
-    judge_technical: 'bg-blue-600',
-    judge_feasibility: 'bg-green-600',
-  }
-  return colorMap[props.agentType] || 'bg-gray-600'
+  return `agent-${props.agentType}`
 })
 
 const messageTypeLabel = computed(() => {
   const labels: Record<string, { text: string; class: string }> = {
-    proposal: { text: 'Proposal', class: 'bg-blue-500/20 text-blue-400' },
-    critique: { text: 'Critique', class: 'bg-red-500/20 text-red-400' },
-    agreement: { text: 'Agreement', class: 'bg-green-500/20 text-green-400' },
-    summary: { text: 'Summary', class: 'bg-purple-500/20 text-purple-400' },
-    question: { text: 'Question', class: 'bg-violet-500/20 text-violet-400' },
-    answer: { text: 'Answer', class: 'bg-dark-500/20 text-dark-300' },
-    evaluation: { text: 'Evaluation', class: 'bg-amber-500/20 text-amber-400' },
+    proposal: { text: 'Proposal', class: 'bg-dusty/15 text-dusty' },
+    critique: { text: 'Critique', class: 'bg-agent-security/15 text-agent-security' },
+    agreement: { text: 'Agreement', class: 'bg-agent-devops/15 text-agent-devops' },
+    summary: { text: 'Summary', class: 'bg-agent-ux/15 text-agent-ux' },
+    question: { text: 'Question', class: 'bg-agent-clarifier/15 text-agent-clarifier' },
+    answer: { text: 'Answer', class: 'bg-dusty/15 text-dusty' },
+    evaluation: { text: 'Evaluation', class: 'bg-yellow/15 text-yellow' },
   }
   return labels[props.messageType || ''] || null
 })
@@ -56,12 +35,12 @@ const isUser = computed(() => props.agentType === 'user')
 
 <template>
   <div
-    class="flex gap-3 animate-fade-in"
+    class="flex gap-3 animate-chalk-in"
     :class="{ 'flex-row-reverse': isUser }"
   >
     <!-- Avatar -->
     <div
-      class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
+      class="w-8 h-8 rounded-full flex items-center justify-center text-slate font-bold text-xs shrink-0"
       :class="avatarClass"
     >
       {{ initials }}
@@ -69,28 +48,28 @@ const isUser = computed(() => props.agentType === 'user')
 
     <!-- Message Content -->
     <div
-      class="flex-1 max-w-[80%]"
+      class="flex-1 max-w-[85%]"
       :class="{ 'text-right': isUser }"
     >
       <div class="flex items-center gap-2 mb-1" :class="{ 'justify-end': isUser }">
-        <span class="font-medium text-dark-200">{{ agentName }}</span>
+        <span class="font-medium text-chalk text-sm">{{ agentName }}</span>
         <span
           v-if="messageTypeLabel"
-          class="text-xs px-2 py-0.5 rounded-full"
+          class="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
           :class="messageTypeLabel.class"
         >
           {{ messageTypeLabel.text }}
         </span>
-        <span v-if="roundNumber" class="text-xs text-dark-500">
+        <span v-if="roundNumber" class="text-[10px] text-chalk-faint">
           Round {{ roundNumber }}
         </span>
       </div>
 
       <div
-        class="rounded-xl p-4 text-sm"
+        class="rounded-lg px-4 py-3 text-sm leading-relaxed"
         :class="{
-          'bg-dark-700 text-dark-200': !isUser,
-          'bg-primary-600 text-white': isUser,
+          'bg-slate border border-slate-border text-chalk-dim': !isUser,
+          'bg-dusty/15 border border-dusty/20 text-chalk': isUser,
         }"
       >
         <p class="whitespace-pre-wrap">{{ content }}</p>
