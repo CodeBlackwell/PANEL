@@ -1,0 +1,36 @@
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: ./backend/.env
+    volumes:
+      - session-data:/app/sessions
+      - user-data:/app/users
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - panel
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - panel
+      - showmeoff_web
+
+volumes:
+  session-data:
+  user-data:
+
+networks:
+  panel:
+    # internal network: frontend <-> backend
+  showmeoff_web:
+    external: true
+    # join PROVE's web network so Caddy can reach panel-frontend
