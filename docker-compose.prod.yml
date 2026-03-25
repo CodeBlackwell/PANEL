@@ -16,13 +16,14 @@ services:
 
   frontend:
     build: ./frontend
+    container_name: panel-frontend
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     networks:
       - panel
-      - showmeoff_web
+      - web
 
 volumes:
   session-data:
@@ -30,7 +31,6 @@ volumes:
 
 networks:
   panel:
-    # internal network: frontend <-> backend
-  showmeoff_web:
+  web:
     external: true
-    # join PROVE's web network so Caddy can reach panel-frontend
+    name: web
